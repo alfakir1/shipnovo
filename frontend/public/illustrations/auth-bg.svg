@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+    <rect width="800" height="600" fill="#0F172A"/>
+    <!-- Abstract representation of interconnected nodes / logistics network -->
+    <path d="M200 400C250 250 350 150 500 150" stroke="#F97316" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+    <path d="M300 450C380 300 450 200 600 250" stroke="#EAB308" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+    <path d="M150 300C250 400 400 450 650 400" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+    
+    <!-- Nodes -->
+    <circle cx="200" cy="400" r="12" fill="#F97316" />
+    <circle cx="500" cy="150" r="16" fill="#F97316" />
+    <circle cx="300" cy="450" r="10" fill="#EAB308" />
+    <circle cx="600" cy="250" r="14" fill="#EAB308" />
+    <circle cx="150" cy="300" r="8" fill="#FFFFFF" />
+    <circle cx="650" cy="400" r="18" fill="#FFFFFF" opacity="0.8"/>
+
+    <!-- Grid / Map overlay effect -->
+    <line x1="100" y1="0" x2="100" y2="600" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    <line x1="250" y1="0" x2="250" y2="600" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    <line x1="400" y1="0" x2="400" y2="600" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    <line x1="550" y1="0" x2="550" y2="600" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    <line x1="700" y1="0" x2="700" y2="600" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+
+    <line x1="0" y1="100" x2="800" y2="100" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    <line x1="0" y1="250" x2="800" y2="250" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    <line x1="0" y1="400" x2="800" y2="400" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    <line x1="0" y1="550" x2="800" y2="550" stroke="#ffffff" stroke-width="1" opacity="0.05" />
+    
+    <!-- Pulse Effect elements -->
+    <circle cx="500" cy="150" r="30" stroke="#F97316" stroke-width="2" opacity="0.3" fill="none" />
+    <circle cx="500" cy="150" r="45" stroke="#F97316" stroke-width="1" opacity="0.1" fill="none" />
+</svg>

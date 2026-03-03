@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" fill="none">
+  <ellipse cx="200" cy="255" rx="110" ry="14" fill="#E8EEF7"/>
+
+  <!-- Invoice stack (back) -->
+  <rect x="120" y="65" width="160" height="185" rx="8" fill="#E8EEF7" transform="rotate(5 200 157)"/>
+  <rect x="120" y="65" width="160" height="185" rx="8" fill="#EBF0F8" transform="rotate(-3 200 157)"/>
+
+  <!-- Main invoice -->
+  <rect x="110" y="55" width="180" height="195" rx="10" fill="#FFFFFF" stroke="#CFD0D3" stroke-width="1.5"/>
+
+  <!-- Header bar -->
+  <rect x="110" y="55" width="180" height="48" rx="10" fill="#060F39"/>
+  <rect x="110" y="79" width="180" height="24" fill="#060F39"/>
+
+  <!-- Logo mark on header -->
+  <rect x="124" y="67" width="22" height="22" rx="4" fill="#EE7011"/>
+  <text x="131" y="82" font-size="11" font-weight="bold" fill="white" font-family="sans-serif">S</text>
+
+  <!-- Header text lines -->
+  <rect x="152" y="69" width="70" height="7" rx="3" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="152" y="80" width="45" height="5" rx="2.5" fill="#6989C2" opacity="0.7"/>
+
+  <!-- Invoice number -->
+  <rect x="240" y="67" width="38" height="22" rx="4" fill="#FEA012" opacity="0.9"/>
+  <rect x="245" y="73" width="28" height="10" rx="2" fill="#FFFFFF" opacity="0.4"/>
+
+  <!-- Line items -->
+  <rect x="124" y="115" width="100" height="6" rx="3" fill="#CFD0D3"/>
+  <rect x="280" y="115" width="20" height="6" rx="3" fill="#CFD0D3"/>
+  <rect x="124" y="128" width="80" height="5" rx="2.5" fill="#E8EEF7"/>
+  <rect x="280" y="128" width="20" height="5" rx="2.5" fill="#E8EEF7"/>
+  <rect x="124" y="140" width="90" height="5" rx="2.5" fill="#E8EEF7"/>
+  <rect x="280" y="140" width="20" height="5" rx="2.5" fill="#E8EEF7"/>
+  <rect x="124" y="152" width="70" height="5" rx="2.5" fill="#E8EEF7"/>
+  <rect x="280" y="152" width="20" height="5" rx="2.5" fill="#E8EEF7"/>
+
+  <!-- Divider -->
+  <line x1="124" y1="168" x2="300" y2="168" stroke="#CFD0D3" stroke-width="1"/>
+
+  <!-- Total row -->
+  <rect x="124" y="176" width="50" height="8" rx="4" fill="#A8BEDE"/>
+  <rect x="274" y="174" width="26" height="12" rx="4" fill="#EE7011" opacity="0.9"/>
+
+  <!-- Status stamp -->
+  <circle cx="230" cy="220" r="24" fill="none" stroke="#34558C" stroke-width="2.5" stroke-dasharray="4 2" opacity="0.5"/>
+  <rect x="210" y="214" width="40" height="12" rx="3" fill="none"/>
+  <text x="222" y="223" font-size="8" font-weight="bold" fill="#34558C" font-family="sans-serif" opacity="0.8">UNPAID</text>
+</svg>

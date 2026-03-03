@@ -1,0 +1,190 @@
+﻿
+> frontend@0.1.0 lint
+> eslint
+
+
+C:\Users\hp\shipnovo\frontend\app\customer\inventory\page.tsx
+   21:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\hp\shipnovo\frontend\app\customer\inventory\page.tsx:21:13
+  19 |     useEffect(() => {
+  20 |         if (warehouses && warehouses.length > 0 && selectedId === null) {
+> 21 |             setSelectedId(warehouses[0].id);
+     |             ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  22 |         }
+  23 |     }, [warehouses, selectedId]);
+  24 |  react-hooks/set-state-in-effect
+  122:92  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  142:26  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\customer\shipments\[id]\page.tsx
+    4:68  warning  'Ticket' is defined but never used        @typescript-eslint/no-unused-vars
+   14:10  warning  'AlertCircle' is defined but never used   @typescript-eslint/no-unused-vars
+   43:42  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  191:49  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  220:53  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\customer\shipments\[id]\quotes\page.tsx
+   6:27  warning  'DollarSign' is defined but never used    @typescript-eslint/no-unused-vars
+   6:49  warning  'CheckCircle' is defined but never used   @typescript-eslint/no-unused-vars
+  11:13  warning  't' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  55:34  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\customer\shipments\new\page.tsx
+   13:16  warning  'isRtl' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+   50:47  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   51:51  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   52:69  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   57:23  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  260:40  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  266:53  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\customer\shipments\page.tsx
+  18:13  warning  'isRtl' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  76:47  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\documents\page.tsx
+  10:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\login\page.tsx
+    3:20  warning  'useEffect' is defined but never used     @typescript-eslint/no-unused-vars
+  140:96  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  162:96  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\ops\dashboard\page.tsx
+    4:10   warning  'LayoutDashboard' is defined but never used        @typescript-eslint/no-unused-vars
+    4:36   warning  'Users' is defined but never used                  @typescript-eslint/no-unused-vars
+    4:100  warning  'TrendingUp' is defined but never used             @typescript-eslint/no-unused-vars
+    7:17   warning  'statusVariant' is defined but never used          @typescript-eslint/no-unused-vars
+   17:41   warning  'loadingAudit' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   83:46   error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   85:51   error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   85:103  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  122:59   error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  167:58   error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\ops\orchestration\page.tsx
+    7:17  warning  'statusVariant' is defined but never used      @typescript-eslint/no-unused-vars
+    9:10  warning  'EmptyState' is defined but never used         @typescript-eslint/no-unused-vars
+   16:40  warning  'loadingP' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   17:46  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   21:43  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   22:42  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   56:70  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  108:81  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  137:79  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\ops\partners\page.tsx
+  41:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\ops\shipments\[id]\page.tsx
+  5:75  warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\shipnovo\frontend\app\ops\shipments\page.tsx
+   4:40  warning  'MapPin' is defined but never used        @typescript-eslint/no-unused-vars
+  67:71  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\partner\dashboard\page.tsx
+   3:26  warning  'useShipments' is defined but never used   @typescript-eslint/no-unused-vars
+   5:10  warning  'Package' is defined but never used        @typescript-eslint/no-unused-vars
+   5:31  warning  'CheckCircle' is defined but never used    @typescript-eslint/no-unused-vars
+   5:44  warning  'Clock' is defined but never used          @typescript-eslint/no-unused-vars
+  17:13  warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  76:53  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\partner\fleet\page.tsx
+    5:30  warning  'MapPin' is defined but never used                               @typescript-eslint/no-unused-vars
+    5:58  warning  'ChevronRight' is defined but never used                         @typescript-eslint/no-unused-vars
+   19:19  warning  'drivers' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+   19:39  warning  'loadingDrivers' is assigned a value but never used              @typescript-eslint/no-unused-vars
+   21:11  warning  'selectedFleet' is assigned a value but never used               @typescript-eslint/no-unused-vars
+   21:44  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   47:40  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   93:63  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  104:93  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  142:75  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  188:57  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\hp\shipnovo\frontend\app\partner\jobs\[id]\page.tsx
+   21:16  warning  'isRtl' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   41:54  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  164:55  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\partner\jobs\page.tsx
+  10:10  warning  'cn' is defined but never used            @typescript-eslint/no-unused-vars
+  18:36  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:39  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:38  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:51  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  97:54  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\partner\quotes\page.tsx
+   5:49  warning  'CheckCircle' is defined but never used   @typescript-eslint/no-unused-vars
+  10:13  warning  't' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  13:62  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  46:41  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\app\partner\warehouses\page.tsx
+  4:10  warning  'useI18n' is defined but never used  @typescript-eslint/no-unused-vars
+  5:38  warning  'Package' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\shipnovo\frontend\app\pricing\page.tsx
+  5:35  warning  'Globe' is defined but never used   @typescript-eslint/no-unused-vars
+  5:42  warning  'Shield' is defined but never used  @typescript-eslint/no-unused-vars
+  5:50  warning  'Clock' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\hp\shipnovo\frontend\app\signup\page.tsx
+    3:20  warning  'useEffect' is defined but never used     @typescript-eslint/no-unused-vars
+    9:57  warning  'CheckCircle' is defined but never used   @typescript-eslint/no-unused-vars
+   43:23  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:65  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\components\layout\AppShell.tsx
+   3:27  warning  'useEffect' is defined but never used     @typescript-eslint/no-unused-vars
+  27:5   warning  'UserCheck' is defined but never used     @typescript-eslint/no-unused-vars
+  55:11  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\components\layout\DashboardShell.tsx
+  11:5   warning  'Users' is defined but never used       @typescript-eslint/no-unused-vars
+  20:10  warning  'clsx' is defined but never used        @typescript-eslint/no-unused-vars
+  20:21  warning  'ClassValue' is defined but never used  @typescript-eslint/no-unused-vars
+  21:10  warning  'twMerge' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\hp\shipnovo\frontend\components\providers\AuthProvider.tsx
+  18:22  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  44:22  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  70:35  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\shipnovo\frontend\components\providers\I18nProvider.tsx
+  36:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\hp\shipnovo\frontend\components\providers\I18nProvider.tsx:36:13
+  34 |         const savedLocale = localStorage.getItem('NEXT_LOCALE') as Locale;
+  35 |         if (savedLocale && (savedLocale === 'en' || savedLocale === 'ar')) {
+> 36 |             setLocale(savedLocale);
+     |             ^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |         } else {
+  38 |             // Default to document dir check
+  39 |             const dir = document.documentElement.dir;  react-hooks/set-state-in-effect
+
+C:\Users\hp\shipnovo\frontend\components\ui\empty-state.tsx
+  17:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\hp\shipnovo\frontend\components\ui\input.tsx
+  4:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+Γ£û 101 problems (54 errors, 47 warnings)
+

@@ -1,0 +1,290 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Kufi+Arabic:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   ShipNovo Brand Palette — DO NOT ADD ANY OTHER COLORS
+   Primary Navy : #060F39
+   Secondary Blue: #34558C
+   Accent Orange : #EE7011
+   Accent Yellow : #FEA012
+   Neutral Border: #CFD0D3
+───────────────────────────────────────────── */
+
+:root {
+  /* ── Raw brand primitives ── */
+  --brand-navy-950: #030921;
+  --brand-navy-900: #060F39;
+  --brand-navy-800: #081641;
+  --brand-navy-700: #0D1F5C;
+  --brand-navy-600: #122454;
+  --brand-navy-500: #1C3370;
+  --brand-navy-400: #2B4A8C;
+  --brand-navy-300: #3E63A8;
+  --brand-navy-200: #6989C2;
+  --brand-navy-100: #A8BEDE;
+  --brand-navy-50: #E8EEF7;
+
+  --brand-blue-900: #1E3260;
+  --brand-blue-700: #28437A;
+  --brand-blue-500: #34558C;
+  --brand-blue-300: #5A7DB5;
+  --brand-blue-100: #C0D0E8;
+  --brand-blue-50: #EBF0F8;
+
+  --brand-orange-900: #7A3200;
+  --brand-orange-700: #C4510A;
+  --brand-orange-500: #EE7011;
+  --brand-orange-300: #F49D5A;
+  --brand-orange-100: #FCDEC5;
+  --brand-orange-50: #FEF3EA;
+
+  --brand-yellow-700: #C07800;
+  --brand-yellow-500: #FEA012;
+  --brand-yellow-300: #FEC45A;
+  --brand-yellow-100: #FEEBB0;
+  --brand-yellow-50: #FFFAE8;
+
+  --brand-border: #CFD0D3;
+
+  /* ── Semantic design tokens (light mode) ── */
+  --background: #F7F8FA;
+  --foreground: var(--brand-navy-900);
+
+  --card: #FFFFFF;
+  --card-foreground: var(--brand-navy-900);
+
+  --popover: #FFFFFF;
+  --popover-foreground: var(--brand-navy-900);
+
+  /* Primary = Navy */
+  --primary: var(--brand-navy-900);
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary = Brand Blue */
+  --secondary: var(--brand-blue-50);
+  --secondary-foreground: var(--brand-blue-500);
+
+  /* Accent = Orange */
+  --accent: var(--brand-orange-500);
+  --accent-foreground: #FFFFFF;
+
+  /* Muted = neutral gray derived from navy */
+  --muted: #F0F1F4;
+  --muted-foreground: #5E6A87;
+
+  /* Destructive → orange-dark (no red) */
+  --destructive: var(--brand-orange-700);
+  --destructive-foreground: #FFFFFF;
+
+  /* Success → blue tint (no green) */
+  --success: var(--brand-blue-500);
+  --success-foreground: #FFFFFF;
+  --success-muted: var(--brand-blue-50);
+
+  /* Warning → yellow */
+  --warning: var(--brand-yellow-500);
+  --warning-foreground: var(--brand-navy-900);
+  --warning-muted: var(--brand-yellow-50);
+
+  --border: var(--brand-border);
+  --input: var(--brand-border);
+  --ring: var(--brand-navy-500);
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: var(--brand-navy-950);
+  --foreground: #F0F4FB;
+
+  --card: var(--brand-navy-900);
+  --card-foreground: #F0F4FB;
+
+  --popover: var(--brand-navy-800);
+  --popover-foreground: #F0F4FB;
+
+  --primary: var(--brand-orange-500);
+  --primary-foreground: #FFFFFF;
+
+  --secondary: var(--brand-navy-700);
+  --secondary-foreground: var(--brand-navy-100);
+
+  --accent: var(--brand-orange-500);
+  --accent-foreground: #FFFFFF;
+
+  --muted: var(--brand-navy-800);
+  --muted-foreground: var(--brand-navy-200);
+
+  --destructive: var(--brand-orange-700);
+  --destructive-foreground: #FFFFFF;
+
+  --success: var(--brand-blue-300);
+  --success-foreground: var(--brand-navy-900);
+  --success-muted: var(--brand-navy-700);
+
+  --warning: var(--brand-yellow-500);
+  --warning-foreground: var(--brand-navy-900);
+  --warning-muted: var(--brand-navy-700);
+
+  --border: var(--brand-navy-700);
+  --input: var(--brand-navy-700);
+  --ring: var(--brand-orange-500);
+}
+
+/* ── Wire tokens → Tailwind v4 ── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted: var(--warning-muted);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand primitives exposed as Tailwind utilities */
+  --color-brand-navy: var(--brand-navy-900);
+  --color-brand-navy-50: var(--brand-navy-50);
+  --color-brand-navy-100: var(--brand-navy-100);
+  --color-brand-navy-500: var(--brand-navy-500);
+  --color-brand-navy-800: var(--brand-navy-800);
+  --color-brand-blue: var(--brand-blue-500);
+  --color-brand-blue-50: var(--brand-blue-50);
+  --color-brand-orange: var(--brand-orange-500);
+  --color-brand-orange-50: var(--brand-orange-50);
+  --color-brand-yellow: var(--brand-yellow-500);
+  --color-brand-yellow-50: var(--brand-yellow-50);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-arabic: 'Noto Kufi Arabic', 'Inter', system-ui, sans-serif;
+}
+
+/* ── Global base ── */
+*,
+*::before,
+*::after {
+  border-color: var(--border);
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[dir="rtl"] body {
+  font-family: var(--font-arabic);
+}
+
+/* ── Scrollbar (brand-flavored) ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--brand-navy-200);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-navy-400);
+}
+
+/* ── RTL helper ── */
+@layer utilities {
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ── Sidebar specific (used in AppShell) ── */
+.sidebar-nav {
+  background-color: var(--brand-navy-900);
+}
+
+.sidebar-nav-item {
+  color: var(--brand-navy-200);
+  transition: all 0.15s ease;
+}
+
+.sidebar-nav-item:hover {
+  background-color: var(--brand-navy-800);
+  color: #FFFFFF;
+}
+
+.sidebar-nav-item.active {
+  background-color: var(--brand-navy-800);
+  color: #FFFFFF;
+  border-inline-start: 3px solid var(--brand-orange-500);
+}
+
+/* ── Status badge helpers ── */
+.badge-transit {
+  background: var(--brand-blue-50);
+  color: var(--brand-blue-500);
+}
+
+.badge-pending {
+  background: var(--brand-yellow-50);
+  color: var(--brand-yellow-700);
+}
+
+.badge-delivered {
+  background: var(--brand-navy-50);
+  color: var(--brand-navy-700);
+}
+
+.badge-cancelled {
+  background: var(--brand-orange-50);
+  color: var(--brand-orange-700);
+}

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" fill="none">
+  <!-- Background waves -->
+  <ellipse cx="200" cy="240" rx="180" ry="30" fill="#E8EEF7" opacity="0.5"/>
+  
+  <!-- Ship hull -->
+  <path d="M80 160 L120 200 L280 200 L320 160 Z" fill="#060F39"/>
+  <path d="M100 160 L300 160 L290 175 L110 175 Z" fill="#122454"/>
+  
+  <!-- Ship body -->
+  <rect x="130" y="110" width="140" height="55" rx="4" fill="#060F39"/>
+  <rect x="150" y="90" width="100" height="25" rx="4" fill="#081641"/>
+  
+  <!-- Cabin windows -->
+  <rect x="155" y="95" width="16" height="14" rx="2" fill="#FEA012" opacity="0.8"/>
+  <rect x="177" y="95" width="16" height="14" rx="2" fill="#FEA012" opacity="0.6"/>
+  <rect x="199" y="95" width="16" height="14" rx="2" fill="#FEA012" opacity="0.4"/>
+  <rect x="221" y="95" width="16" height="14" rx="2" fill="#FEA012" opacity="0.3"/>
+
+  <!-- Cargo containers stack -->
+  <rect x="135" y="115" width="38" height="22" rx="2" fill="#34558C"/>
+  <rect x="178" y="115" width="38" height="22" rx="2" fill="#EE7011"/>
+  <rect x="221" y="115" width="38" height="22" rx="2" fill="#34558C"/>
+  <rect x="135" y="137" width="38" height="18" rx="2" fill="#EE7011" opacity="0.7"/>
+  <rect x="178" y="137" width="38" height="18" rx="2" fill="#060F39" opacity="0.8"/>
+  <rect x="221" y="137" width="38" height="18" rx="2" fill="#EE7011" opacity="0.7"/>
+
+  <!-- Crane arm -->
+  <line x1="300" y1="80" x2="200" y2="140" stroke="#CFD0D3" stroke-width="3" stroke-linecap="round"/>
+  <line x1="300" y1="60" x2="300" y2="160" stroke="#060F39" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="300" cy="58" r="6" fill="#EE7011"/>
+
+  <!-- Water -->
+  <path d="M60 205 Q100 195 140 205 Q180 215 220 205 Q260 195 300 205 Q340 215 340 205" stroke="#A8BEDE" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M60 215 Q110 205 160 215 Q210 225 260 215 Q300 205 340 215" stroke="#A8BEDE" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Empty state X mark (subtle) -->
+  <circle cx="200" cy="50" r="22" fill="#E8EEF7"/>
+  <path d="M190 40 L210 60 M210 40 L190 60" stroke="#A8BEDE" stroke-width="3" stroke-linecap="round"/>
+</svg>
