@@ -96,6 +96,11 @@ class PaymentService
                 'transaction_id' => 'cap_' . Str::random(12),
             ]);
 
+            // Update associated invoices
+            \App\Models\Invoice::where('shipment_id', $payment->shipment_id)
+                ->where('status', 'authorized')
+                ->update(['status' => 'captured']);
+
             $payment->transactions()->create([
                 'type' => 'capture',
                 'gateway_ref' => $payment->transaction_id,

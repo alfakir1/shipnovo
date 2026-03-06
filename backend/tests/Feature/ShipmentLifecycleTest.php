@@ -36,7 +36,13 @@ class ShipmentLifecycleTest extends TestCase
         $response->assertStatus(201);
         $shipmentId = $response->json('data.id');
 
-        // 3. Partner submits quote
+        // 3. Admin/Ops invites partner
+        \App\Models\QuoteInvitation::create([
+            'shipment_id' => $shipmentId,
+            'partner_id' => $partner->id
+        ]);
+
+        // 4. Partner submits quote
         $response = $this->actingAs($partnerUser, 'sanctum')
             ->postJson("/api/shipments/{$shipmentId}/quotes", [
                 'amount' => 1000,
@@ -45,12 +51,12 @@ class ShipmentLifecycleTest extends TestCase
         $response->assertStatus(201);
         $quoteId = $response->json('data.id');
 
-        // 4. Shipper selects quote
+        // 5. Shipper selects quote
         $response = $this->actingAs($shipper, 'sanctum')
             ->postJson("/api/shipments/{$shipmentId}/quotes/{$quoteId}/select");
         $response->assertStatus(200);
 
-        // 5. Shipper authorizes payment
+        // 6. Shipper authorizes payment
         $response = $this->actingAs($shipper, 'sanctum')
             ->postJson("/api/shipments/{$shipmentId}/payments/authorize", [
                 'amount' => 1000,
@@ -58,7 +64,17 @@ class ShipmentLifecycleTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonPath('data.status', 'authorized');
 
-        // 6. Admin captures payment
+        // Update shipment status to delivered to allow payment capture
+        \App\Models\Shipment::find($shipmentId)->update(['status' => 'delivered']);
+
+        $assignment = \App\Models\ShipmentPartnerAssignment::create([
+            'shipment_id' => $shipmentId,
+            'partner_id' => $partner->id,
+            'leg_type' => 'freight',
+            'status' => 'assigned'
+        ]);
+
+        // 7. Admin captures payment
         $response = $this->actingAs($admin, 'sanctum')
             ->postJson("/api/shipments/{$shipmentId}/payments/capture");
         $response->assertStatus(200);

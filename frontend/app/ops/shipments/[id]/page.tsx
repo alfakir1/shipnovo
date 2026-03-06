@@ -1,8 +1,8 @@
 'use client';
 
-import { useShipment, useUpdateShipment, useAddEvent } from "@/hooks/useShipments";
+import { useShipment, useUpdateShipment, useAddEvent, usePartners, useAssignPartner } from "@/hooks/useShipments";
 import { useParams } from "next/navigation";
-import { Package, ArrowRight, MapPin, FileText, UserPlus, Send, Download } from "lucide-react";
+import { Package, ArrowRight, MapPin, FileText, UserPlus, Send, Download, X, Truck, Shield, Plus } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,15 @@ import { useState } from "react";
 
 export default function OpsShipmentDetailPage() {
     const { id } = useParams() as { id: string };
-    const { data, isLoading } = useShipment(id);
+    const { data: shipment, isLoading } = useShipment(id);
     const updateShipment = useUpdateShipment();
     const addEvent = useAddEvent();
-    const shipment = data;
+    const { data: partners } = usePartners();
+    const assignPartner = useAssignPartner();
     const { t } = useI18n();
 
     const [statusForm, setStatusForm] = useState({ status: 'customs', description: '' });
+    const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
 
     const handleUpdateStatus = async () => {
         try {
@@ -124,7 +126,9 @@ export default function OpsShipmentDetailPage() {
                     <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
                         <div className="flex items-center justify-between p-5 border-b border-border">
                             <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('ops.shipments.partnerAssignments')}</h3>
-                            <Button variant="outline" size="sm" className="gap-1.5 text-xs"><UserPlus className="h-3.5 w-3.5" /> {t('common.add')}</Button>
+                            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setIsPartnerModalOpen(true)}>
+                                <UserPlus className="h-3.5 w-3.5" /> {t('common.add')}
+                            </Button>
                         </div>
                         {(shipment?.assignments?.length ?? 0) > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6">
@@ -179,7 +183,7 @@ export default function OpsShipmentDetailPage() {
                                     value={statusForm.status}
                                     onChange={e => setStatusForm(prev => ({ ...prev, status: e.target.value }))}
                                     className="w-full h-10 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 transition-all">
-                                    <option value="processing">Processing</option>
+                                    <option value="processing">{t('status.processing') || 'Processing'}</option>
                                     <option value="customs">{t('status.customs')}</option>
                                     <option value="at_destination">{t('status.at_destination')}</option>
                                     <option value="transit">{t('status.transit')}</option>
@@ -206,6 +210,91 @@ export default function OpsShipmentDetailPage() {
                     </div>
                 </TabsContent>
             </Tabs>
+
+            {/* Partner Selection Modal */}
+            {isPartnerModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-card w-full max-w-2xl rounded-2xl border border-border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between p-6 border-b border-border">
+                            <div>
+                                <h3 className="text-lg font-black text-foreground">{t('ops.assignPartner')}</h3>
+                                <p className="text-sm text-muted-foreground">{t('ops.orchestration.subtitle')}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => setIsPartnerModalOpen(false)} className="rounded-full">
+                                <X className="h-5 w-5" />
+                            </Button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto max-h-[70vh]">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Carriers */}
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Truck className="h-4 w-4" style={{ color: 'var(--brand-orange-500)' }} />
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('auth.partner')}</p>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {partners?.filter((p: any) => p.role_type === 'carrier').map((p: any) => (
+                                            <div key={p.id} className="p-4 bg-muted/40 rounded-xl border border-border hover:border-brand-navy-200 transition-colors group">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="h-9 w-9 rounded-lg flex items-center justify-center text-sm font-black text-white"
+                                                        style={{ backgroundColor: 'var(--brand-navy-800)' }}>
+                                                        {p.company_name?.[0]}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-bold text-foreground truncate">{p.company_name}</p>
+                                                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Active Partner</p>
+                                                    </div>
+                                                </div>
+                                                <Button size="sm" variant="default" className="w-full text-xs h-8"
+                                                    onClick={async () => {
+                                                        await assignPartner.mutateAsync({ shipmentId: Number(id), partnerId: p.id, legType: 'freight' });
+                                                        setIsPartnerModalOpen(false);
+                                                    }}
+                                                    disabled={assignPartner.isPending}>
+                                                    {assignPartner.isPending ? t('common.loading') : <><Plus className="me-1.5 h-3.5 w-3.5" />{t('ops.orchestration.assignFreight')}</>}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Customs */}
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Shield className="h-4 w-4" style={{ color: 'var(--brand-blue-500)' }} />
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('status.customs')}</p>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {partners?.filter((p: any) => p.role_type === 'customs').map((p: any) => (
+                                            <div key={p.id} className="p-4 bg-muted/40 rounded-xl border border-border hover:border-brand-blue-300 transition-colors group">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="h-9 w-9 rounded-lg flex items-center justify-center text-sm font-black text-white"
+                                                        style={{ backgroundColor: 'var(--brand-blue-500)' }}>
+                                                        {p.company_name?.[0]}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-bold text-foreground truncate">{p.company_name}</p>
+                                                        <Badge variant="success" className="text-[10px] mt-0.5">{t('status.active')}</Badge>
+                                                    </div>
+                                                </div>
+                                                <Button size="sm" variant="secondary" className="w-full text-xs h-8 border border-brand-blue-100"
+                                                    onClick={async () => {
+                                                        await assignPartner.mutateAsync({ shipmentId: Number(id), partnerId: p.id, legType: 'customs' });
+                                                        setIsPartnerModalOpen(false);
+                                                    }}
+                                                    disabled={assignPartner.isPending}>
+                                                    {assignPartner.isPending ? t('common.loading') : t('ops.orchestration.authorizeCustoms')}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

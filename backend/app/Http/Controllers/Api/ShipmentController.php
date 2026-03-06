@@ -14,8 +14,9 @@ use App\Services\Document\DocumentVault;
 use App\Services\Support\TicketsService;
 use App\Services\Billing\BillingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Support\ApiResponse;
+use Illuminate\Support\Facades\Storage;
+use App\Services\Shipment\ShipmentStateMachine;
 
 class ShipmentController extends ApiController
 {
@@ -52,19 +53,19 @@ class ShipmentController extends ApiController
     {
         $shipment = Shipment::with(['customer', 'creator', 'assignments.partner', 'tickets.comments', 'invoices.items', 'events', 'documents'])->findOrFail($id);
         
-        // RBAC: Customer only sees own, Partner only sees assigned or RFQs
-        $user = $request->user();
-        if ($user->role === 'customer' && $shipment->customer_id !== $user->id) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to this shipment', [], 403);
-        }
+        $this->authorize('view', $shipment);
 
-        if ($user->role === 'partner') {
-            $isAssigned = $shipment->assignments()->whereHas('partner', function($q) use ($user) {
-                $q->where('user_id', $user->id);
+        // Masking for partners if it's an RFQ they aren't assigned to
+        if ($request->user()->role === 'partner') {
+            $isAssigned = $shipment->assignments()->whereHas('partner', function($q) use ($request) {
+                $q->where('user_id', $request->user()->id);
             })->exists();
 
-            if (!$isAssigned && $shipment->status !== 'rfq') {
-                return ApiResponse::error('FORBIDDEN', 'Access denied to this shipment', [], 403);
+            if (!$isAssigned && ($shipment->status === 'rfq' || $shipment->status === 'pending')) {
+                // Mask sensitive info
+                $shipment->customer_id = null;
+                $shipment->description = 'SENSITIVE DATA MASKED';
+                $shipment->internal_value = null;
             }
         }
 
@@ -87,6 +88,7 @@ class ShipmentController extends ApiController
             'description' => 'nullable|string',
             'customer_id' => 'nullable|exists:users,id',
             'status' => 'nullable|string',
+            'pickup_date' => 'nullable|date',
         ]);
 
         $shipment = $this->shipmentEngine->create($request->all(), $request->user());
@@ -97,13 +99,15 @@ class ShipmentController extends ApiController
     {
         $shipment = Shipment::findOrFail($id);
         
-        // RBAC: Ops/Admin only
-        if (!in_array($request->user()->role, ['ops', 'admin'])) {
-            return ApiResponse::error('FORBIDDEN', 'Only Ops/Admin can update shipment status', [], 403);
-        }
+        $this->authorize('update', $shipment);
 
         $request->validate(['status' => 'required|string']);
-        $shipment = $this->shipmentEngine->updateStatus($shipment, $request->status);
+        
+        try {
+            $shipment = ShipmentStateMachine::transition($shipment, $request->status);
+        } catch (\Exception $e) {
+            return ApiResponse::error('INVALID_TRANSITION', $e->getMessage(), [], 422);
+        }
         
         return ApiResponse::ok($shipment);
     }
@@ -118,54 +122,38 @@ class ShipmentController extends ApiController
     {
         $shipment = Shipment::findOrFail($id);
         
-        // RBAC: Ops/Admin only
-        if (!in_array($request->user()->role, ['ops', 'admin'])) {
-            return ApiResponse::error('FORBIDDEN', 'Only Ops/Admin can assign partners', [], 403);
-        }
+        $this->authorize('update', $shipment);
 
         $request->validate(['partner_id' => 'required|exists:partners,id', 'leg_type' => 'required|string']);
         $assignment = $this->orchestrationEngine->assignPartner($shipment, $request->all());
         
+        // Create Work Order (P0-5)
+        \App\Models\WorkOrder::updateOrCreate(
+            ['shipment_id' => $shipment->id],
+            ['partner_id' => $request->partner_id, 'status' => 'active']
+        );
+
+        // Transition to processing if in offer_selected
+        if ($shipment->status === 'offer_selected') {
+            ShipmentStateMachine::transition($shipment, ShipmentStateMachine::STATUS_PROCESSING);
+        }
+        
         return ApiResponse::created($assignment);
     }
 
-    protected function validateShipmentAccess(Shipment $shipment, \App\Models\User $user, bool $allowPartner = false)
-    {
-        if (in_array($user->role, ['ops', 'admin'])) {
-            return true;
-        }
-
-        if ($user->role === 'customer') {
-            return $shipment->customer_id === $user->id;
-        }
-
-        if ($user->role === 'partner' && $allowPartner) {
-            // Check if assigned or if it's an RFQ
-            $isAssigned = $shipment->assignments()->whereHas('partner', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })->exists();
-
-            return $isAssigned || $shipment->status === 'rfq';
-        }
-
-        return false;
-    }
+    // validateShipmentAccess removed in favor of Policies
 
     public function getAssignments($id, Request $request)
     {
         $shipment = Shipment::findOrFail($id);
-        if (!$this->validateShipmentAccess($shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to these assignments', [], 403);
-        }
+        $this->authorize('view', $shipment);
         return ApiResponse::ok($shipment->assignments()->with('partner')->get());
     }
 
     public function getEvents($id, Request $request)
     {
         $shipment = Shipment::findOrFail($id);
-        if (!$this->validateShipmentAccess($shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to these events', [], 403);
-        }
+        $this->authorize('view', $shipment);
         $events = $this->trackingService->getEvents($shipment);
         return ApiResponse::ok(TrackingEventResource::collection($events));
     }
@@ -173,11 +161,7 @@ class ShipmentController extends ApiController
     public function addEvent(Request $request, $id)
     {
         $shipment = Shipment::findOrFail($id);
-        
-        // RBAC: Partner assigned to this shipment or Ops/Admin
-        if (!$this->validateShipmentAccess($shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to add events', [], 403);
-        }
+        $this->authorize('addEvent', $shipment);
 
         $request->validate([
             'status_code' => 'required|string',
@@ -186,24 +170,26 @@ class ShipmentController extends ApiController
         ]);
 
         $event = $this->trackingService->addEvent($shipment, $request->all(), $request->user()->id);
+        
+        // Auto-transition from processing to transit on first event
+        if ($shipment->status === 'processing') {
+            ShipmentStateMachine::transition($shipment, ShipmentStateMachine::STATUS_TRANSIT);
+        }
+
         return ApiResponse::created(new TrackingEventResource($event));
     }
 
     public function getDocuments($id, Request $request)
     {
         $shipment = Shipment::findOrFail($id);
-        if (!$this->validateShipmentAccess($shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to these documents', [], 403);
-        }
+        $this->authorize('viewDocuments', $shipment);
         return ApiResponse::ok($this->documentVault->list($shipment));
     }
 
     public function uploadDocument(Request $request, $id)
     {
         $shipment = Shipment::findOrFail($id);
-        if (!$this->validateShipmentAccess($shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to upload documents', [], 403);
-        }
+        $this->authorize('uploadDocument', $shipment);
 
         $request->validate([
             'file' => 'required|file|max:5120',
@@ -217,27 +203,21 @@ class ShipmentController extends ApiController
     public function downloadDocument($id, Request $request)
     {
         $document = Document::with('shipment')->findOrFail($id);
-        if (!$this->validateShipmentAccess($document->shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to download this document', [], 403);
-        }
+        $this->authorize('viewDocuments', $document->shipment);
         return Storage::disk('public')->download($document->file_path);
     }
 
     public function getTickets($id, Request $request)
     {
         $shipment = Shipment::findOrFail($id);
-        if (!$this->validateShipmentAccess($shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to these tickets', [], 403);
-        }
+        $this->authorize('viewTickets', $shipment);
         return ApiResponse::ok($this->ticketsService->list($shipment));
     }
 
     public function createTicket(Request $request, $id)
     {
         $shipment = Shipment::findOrFail($id);
-        if (!$this->validateShipmentAccess($shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to create tickets here', [], 403);
-        }
+        $this->authorize('createTicket', $shipment);
 
         $request->validate(['subject' => 'required|string']);
         $ticket = $this->ticketsService->create($shipment, $request->all(), $request->user()->id);
@@ -265,40 +245,32 @@ class ShipmentController extends ApiController
     public function addTicketComment(Request $request, $id)
     {
         $ticket = Ticket::with('shipment')->findOrFail($id);
-        if (!$this->validateShipmentAccess($ticket->shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to comment on this ticket', [], 403);
-        }
+        $this->authorize('createTicket', $ticket->shipment);
 
         $request->validate(['body' => 'required|string']);
         $comment = $this->ticketsService->addComment($ticket, $request->body, $request->user()->id);
         return ApiResponse::created($comment);
     }
 
-    public function getInvoice($id, Request $request)
+    public function getInvoice(Shipment $shipment, Request $request)
     {
-        $shipment = Shipment::findOrFail($id);
-        if (!$this->validateShipmentAccess($shipment, $request->user(), true)) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied to this invoice', [], 403);
-        }
+        $this->authorize('viewInvoice', $shipment);
         return ApiResponse::ok($this->billingService->getInvoice($shipment));
     }
 
-    public function generateInvoice(Request $request, $id)
+    public function generateInvoice(Request $request, Shipment $shipment)
     {
-        $shipment = Shipment::findOrFail($id);
-        
-        // RBAC: Ops/Admin only
-        if (!in_array($request->user()->role, ['ops', 'admin'])) {
-            return ApiResponse::error('FORBIDDEN', 'Only Ops/Admin can generate invoices', [], 403);
-        }
+        $this->authorize('update', $shipment);
 
         $invoice = $this->billingService->generate($shipment, $request->user()->id);
         return ApiResponse::created($invoice);
     }
 
-    public function getPartners()
+    public function getPartners(Request $request)
     {
-        return ApiResponse::ok(\App\Models\Partner::all());
+        // Only return verified partners for assignment
+        $partners = \App\Models\Partner::where('is_verified', true)->get();
+        return ApiResponse::ok($partners);
     }
 
     public function getAuditLogs(Request $request)

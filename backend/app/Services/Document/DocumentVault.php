@@ -18,10 +18,10 @@ class DocumentVault
 
         return Document::create([
             'shipment_id' => $shipment->id,
-            'uploaded_by_user_id' => $userId,
-            'type' => $type,
+            'name' => $file->getClientOriginalName(),
             'file_path' => $path,
-            'status' => 'active',
+            'doc_type' => $type,
+            'uploaded_by' => $userId,
         ]);
     }
 

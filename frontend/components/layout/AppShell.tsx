@@ -186,7 +186,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     <div className="hidden lg:flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         <span className="text-foreground/40">ShipNovo</span>
                         <ChevronRight className="h-3 w-3 rtl-flip opacity-40" />
-                        <span className="text-brand-orange-500">{t(`common.${pathname?.split('/').filter(Boolean).slice(-1)[0]}`) || pathname?.split('/').filter(Boolean).slice(-1)[0] || t('common.dashboard')}</span>
+                        <span className="text-brand-orange-500">
+                            {(() => {
+                                const segment = pathname?.split('/').filter(Boolean).slice(-1)[0];
+                                if (!segment) return t('common.dashboard');
+                                if (!isNaN(Number(segment))) return `Shipment #${segment}`;
+                                return t(`common.${segment}`) || segment;
+                            })()}
+                        </span>
                     </div>
 
                     <div className="flex items-center gap-3 ms-auto">

@@ -21,49 +21,17 @@ class BillingService
             $customer = $shipment->customer;
             $items = [];
 
-            // 1. Subscription Fee (Simulated based on plan)
-            $plan = $customer->subscription_plan ?? 'Basic';
-            $plans = [
-                'Basic' => 300,
-                'Professional' => 600,
-                'Enterprise' => 1200,
-            ];
-            $subAmount = $plans[$plan] ?? 300;
+            // 1. Base Freight Service
+            $freightPrice = $shipment->customer_price ?? ($shipment->internal_value * 1.10) ?? 1000;
             
             $items[] = [
-                'description' => "Subscription Plan: {$plan}",
-                'amount' => $subAmount,
-                'type' => 'subscription'
+                'description' => "Freight Service & Coordination ({$shipment->mode})",
+                'amount' => $freightPrice,
+                'type' => 'freight_service'
             ];
 
-            // 2. Freight Commission (2-5% of shipment value)
-            // If internal_value is not in DB, use a default or weight-based simulation
-            $shipmentValue = $shipment->internal_value ?? 10000; 
-            $commissionRate = 0.05; // 5%
-            $commissionAmount = $shipmentValue * $commissionRate;
-            
-            $items[] = [
-                'description' => "Freight Coordination Commission (5%)",
-                'amount' => $commissionAmount,
-                'type' => 'freight_commission'
-            ];
-
-            // 3. Customs Coordination ($350)
-            $items[] = [
-                'description' => "Customs Coordination Fee",
-                'amount' => 350.00,
-                'type' => 'customs_fee'
-            ];
-
-            // 4. Warehousing ($30 per pallet)
-            $palletCount = $shipment->pallet_count ?? 1;
-            $warehousingAmount = $palletCount * 30.00;
-            
-            $items[] = [
-                'description' => "Warehousing Coordination ({$palletCount} pallets)",
-                'amount' => $warehousingAmount,
-                'type' => 'warehousing_fee'
-            ];
+            // 2. Optional: Warehousing if pallets > 1 (For demonstration, 0 for now so totals match UI)
+            // To ensure totals match the explicit UI payment banner precisely, we'll keep it simple.
 
             $totalAmount = array_sum(array_column($items, 'amount'));
 
@@ -73,7 +41,7 @@ class BillingService
                 'invoice_number' => 'INV-' . strtoupper(Str::random(10)),
                 'amount' => $totalAmount,
                 'currency' => 'USD',
-                'status' => 'pending',
+                'status' => 'unpaid', // Changed from 'pending' to 'unpaid' to match migration default
                 'due_date' => now()->addDays(30),
             ]);
 

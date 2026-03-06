@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Warehouse;
 use App\Models\InventoryItem;
 use App\Models\Partner;
-use App\Http\Responses\ApiResponse;
+use App\Support\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 
 class WarehouseController extends Controller

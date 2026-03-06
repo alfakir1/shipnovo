@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCreateShipment, useQuotes, Quote } from "@/hooks/useShipments";
+import { useCreateShipment, useQuotes, SimulatedQuote } from "@/hooks/useShipments";
 import { ArrowRight, ArrowLeft, Package, MapPin, Ship, Truck, Plane, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,7 @@ export default function NewShipmentPage() {
         service_type: 'standard',
         customer_price: '',
         notes: '',
-        status: 'pending',
+        status: 'processing',
         internal_value: '',
         pallet_count: '1',
         pickup_date: '',
@@ -55,16 +55,21 @@ export default function NewShipmentPage() {
             });
 
             const res = await createShipment.mutateAsync(sanitizedForm);
-            router.push(`/customer/shipments/${(res as { id: number }).id}`);
+
+            if (res && (res as any).id) {
+                router.push(`/customer/shipments/${(res as { id: number }).id}`);
+            } else {
+                router.push('/customer/shipments');
+            }
         } catch (err: unknown) {
-            console.error(err);
-            const errorObj = err as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } };
-            if (errorObj?.response?.status === 422) {
-                const validationErrors = errorObj.response.data?.errors;
+            const errorObj = err as { status?: number, errors?: Record<string, string[]>, message?: string };
+
+            if (errorObj?.status === 422) {
+                const validationErrors = errorObj.errors;
                 setFieldErrors(validationErrors || {});
                 setError(t('common.errorOccurred'));
             } else {
-                setError(errorObj?.response?.data?.message || t('common.errorOccurred'));
+                setError(errorObj?.message || t('common.errorOccurred'));
             }
         }
     };
@@ -151,7 +156,7 @@ export default function NewShipmentPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className={labelClass}>Pickup Date</label>
+                                <label className={labelClass}>{t('shipments.pickupDate')}</label>
                                 <input type="date" value={form.pickup_date} onChange={set('pickup_date')}
                                     className={cn(fieldClass, fieldErrors.pickup_date && "border-destructive focus:ring-destructive/20")} />
                                 {fieldErrors.pickup_date && <p className="text-[10px] text-destructive mt-1 font-bold uppercase">{fieldErrors.pickup_date[0]}</p>}
@@ -169,7 +174,7 @@ export default function NewShipmentPage() {
                                                 form.mode === m ? "border-accent bg-brand-orange-50 text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
                                             )}>
                                             <Icon className="h-6 w-6" />
-                                            {m} Freight
+                                            {t(`shipments.${m}Freight`)}
                                         </button>
                                     );
                                 })}
@@ -239,7 +244,7 @@ export default function NewShipmentPage() {
                         <h2 className="text-lg font-bold text-foreground">{t('shipments.getQuote')}</h2>
                         <div className="flex gap-4 mb-6">
                             <button
-                                onClick={() => setForm(p => ({ ...p, status: 'pending' }))}
+                                onClick={() => setForm(p => ({ ...p, status: 'processing' }))}
                                 className={cn(
                                     "flex-1 p-4 rounded-xl border-2 text-sm font-bold transition-all",
                                     form.status !== 'rfq' ? "border-accent bg-brand-orange-50 text-accent" : "border-border bg-card text-muted-foreground"
@@ -272,7 +277,7 @@ export default function NewShipmentPage() {
                         ) : (
                             quotes.length > 0 ? (
                                 <div className="grid gap-4">
-                                    {quotes.map((q: Quote) => (
+                                    {quotes.map((q: SimulatedQuote) => (
                                         <div key={q.id}
                                             onClick={() => setForm(p => ({ ...p, customer_price: String(q.price ?? q.amount), service_type: q.service_type ?? 'standard' }))}
                                             className={cn(
@@ -342,7 +347,7 @@ export default function NewShipmentPage() {
                     </Button>
                     {step < STEPS_LABELS.length - 1 ? (
                         <Button variant="accent" onClick={() => setStep(s => s + 1)}>
-                            {t('auth.accountCreatedDesc')} <ArrowRight className="ms-2 h-4 w-4 rtl-flip" />
+                            {t('common.next')} <ArrowRight className="ms-2 h-4 w-4 rtl-flip" />
                         </Button>
                     ) : (
                         <Button variant="accent" onClick={handleSubmit} disabled={createShipment.isPending}>

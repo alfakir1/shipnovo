@@ -35,6 +35,7 @@ class Shipment extends Model
         'description',
         'internal_value',
         'pallet_count',
+        'pickup_date',
     ];
 
     public function customer()
@@ -92,11 +93,24 @@ class Shipment extends Model
         return $this->hasMany(Ticket::class);
     }
 
+    public function invitations()
+    {
+        return $this->hasMany(QuoteInvitation::class);
+    }
+
+    public function workOrder()
+    {
+        return $this->hasOne(WorkOrder::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($shipment) {
+            if (empty($shipment->tracking_number)) {
+                $shipment->tracking_number = 'SNV-' . strtoupper(\Illuminate\Support\Str::random(8));
+            }
             if (empty($shipment->tracking_token)) {
                 $shipment->tracking_token = 'tk_' . \Illuminate\Support\Str::random(32);
             }

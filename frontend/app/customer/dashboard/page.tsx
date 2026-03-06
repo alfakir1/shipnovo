@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
-import { AlertCircle, X } from "lucide-react";
+import { useState, useCallback } from "react";
+import { AlertCircle, X, Loader2 } from "lucide-react";
+import api from '@/lib/api';
 
 export default function CustomerDashboard() {
     const [showKycBanner, setShowKycBanner] = useState(true);
@@ -19,9 +20,24 @@ export default function CustomerDashboard() {
     const { data: analytics, isLoading: loadingA } = useCustomerAnalytics();
     const { user } = useAuth();
     const { t } = useI18n();
+    const [isUploadingKyc, setIsUploadingKyc] = useState(false);
 
     const shipments = shipmentsData?.data?.data ?? [];
     const total = shipmentsData?.data?.total ?? 0;
+
+    const needsKyc = user?.role === 'customer' && user?.kyc_status !== 'completed';
+
+    const handleKycUpload = useCallback(async () => {
+        setIsUploadingKyc(true);
+        try {
+            await api.post('/auth/kyc/upload');
+            window.location.reload();
+        } catch (error) {
+            console.error("KYC upload failed:", error);
+            alert("Failed to upload KYC documents. Please try again.");
+            setIsUploadingKyc(false);
+        }
+    }, []);
 
     return (
         <div className="space-y-8 pb-12">
@@ -46,34 +62,32 @@ export default function CustomerDashboard() {
             </div>
 
             {/* KYC / Profile Completion Banner */}
-            {showKycBanner && (
-                <div className={`border-2 rounded-xl p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in slide-in-from-top-2 transition-colors ${shipments.length === 0
-                        ? "bg-brand-orange-50 border-brand-orange-200"
-                        : "bg-blue-50 border-blue-100"
+            {needsKyc && showKycBanner && (
+                <div className={`border-2 rounded-xl p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in slide-in-from-top-2 transition-colors ${user?.kyc_status === 'pending'
+                    ? "bg-brand-orange-50 border-brand-orange-200"
+                    : "bg-blue-50 border-blue-100"
                     }`}>
                     <div className="flex gap-4 items-start md:items-center">
-                        <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center mt-1 md:mt-0 ${shipments.length === 0 ? "bg-brand-orange-100 text-brand-orange-600" : "bg-blue-100 text-blue-600"
+                        <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center mt-1 md:mt-0 ${user?.kyc_status === 'pending' ? "bg-brand-orange-100 text-brand-orange-600" : "bg-blue-100 text-blue-600"
                             }`}>
                             <AlertCircle className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className={`font-bold ${shipments.length === 0 ? "text-brand-orange-950" : "text-blue-950"}`}>
-                                {shipments.length === 0 ? "Action Required: Complete Your Profile" : "Profile Verification Pending"}
+                            <p className={`font-bold ${user?.kyc_status === 'pending' ? "text-brand-orange-950" : "text-blue-950"}`}>
+                                {user?.kyc_status === 'pending' ? "Action Required: Complete Your Profile" : "Profile Verification Pending"}
                             </p>
-                            <p className={`text-sm mt-1 ${shipments.length === 0 ? "text-brand-orange-800" : "text-blue-800"}`}>
-                                {shipments.length === 0
+                            <p className={`text-sm mt-1 ${user?.kyc_status === 'pending' ? "text-brand-orange-800" : "text-blue-800"}`}>
+                                {user?.kyc_status === 'pending'
                                     ? "To start shipping and accepting quotes, please upload your company registration and KYC documents."
                                     : "We have received your documents. Our ops team is currently reviewing your registration details."}
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 w-full md:w-auto">
-                        {shipments.length === 0 ? (
-                            <Button variant="accent" className="flex-1 md:flex-none" onClick={() => {
-                                // Simulate navigation to docs or just trigger a "pending" state
-                                alert("Simulation: Document upload dialog opened. Select files to continue.");
-                            }}>
-                                Upload Documents
+                        {user?.kyc_status === 'pending' ? (
+                            <Button variant="accent" className="flex-1 md:flex-none" onClick={handleKycUpload} disabled={isUploadingKyc}>
+                                {isUploadingKyc ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                Upload Documents (Simulated)
                             </Button>
                         ) : (
                             <Badge variant="outline" className="bg-white/50 border-blue-200 text-blue-700 font-bold px-3 py-1">

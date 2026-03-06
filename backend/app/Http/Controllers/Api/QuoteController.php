@@ -6,31 +6,31 @@ use App\Models\Shipment;
 use App\Models\Quote;
 use App\Models\Partner;
 use App\Services\Quote\QuoteService;
+use App\Services\Billing\BillingService;
+use App\Services\Shipment\ShipmentStateMachine;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 
 class QuoteController extends ApiController
 {
     protected $quoteService;
+    protected $billingService;
 
-    public function __construct(QuoteService $quoteService)
+    public function __construct(QuoteService $quoteService, BillingService $billingService)
     {
         $this->quoteService = $quoteService;
+        $this->billingService = $billingService;
     }
 
     public function index($shipmentId, Request $request)
     {
         $shipment = Shipment::findOrFail($shipmentId);
         
-        // RBAC: Customer only sees for own shipment, Partner only sees own quote
-        $user = $request->user();
-        if ($user->role === 'customer' && $shipment->customer_id !== $user->id) {
-            return ApiResponse::error('FORBIDDEN', 'Access denied', [], 403);
-        }
+        $this->authorize('view', $shipment);
 
         $query = $shipment->quotes()->with('partner');
-        if ($user->role === 'partner') {
-            $partner = Partner::where('user_id', $user->id)->firstOrFail();
+        if ($request->user()->role === 'partner') {
+            $partner = Partner::where('user_id', $request->user()->id)->firstOrFail();
             $query->where('partner_id', $partner->id);
         }
 
@@ -39,26 +39,25 @@ class QuoteController extends ApiController
 
     public function store($shipmentId, Request $request)
     {
+        $shipment = Shipment::findOrFail($shipmentId);
+        
+        $this->authorize('submitQuote', $shipment);
+
         $request->validate([
             'amount' => 'required|numeric',
             'eta_days' => 'required|integer',
             'notes' => 'nullable|string',
         ]);
 
-        $shipment = Shipment::findOrFail($shipmentId);
-        $user = $request->user();
-
-        if ($user->role !== 'partner') {
-            return ApiResponse::error('FORBIDDEN', 'Only partners can submit quotes', [], 403);
-        }
-
-        $partner = Partner::where('user_id', $user->id)->firstOrFail();
+        $partner = Partner::where('user_id', $request->user()->id)->firstOrFail();
         
-        if (!$partner->is_verified) {
-             return ApiResponse::error('FORBIDDEN', 'Partner is not verified yet', [], 403);
+        $quote = $this->quoteService->submitQuote($shipment, $partner, $request->all());
+
+        // If it's the first quote, transition to offers_received
+        if ($shipment->status === 'rfq' || $shipment->status === 'pending') {
+             ShipmentStateMachine::transition($shipment, ShipmentStateMachine::STATUS_OFFERS_RECEIVED);
         }
 
-        $quote = $this->quoteService->submitQuote($shipment, $partner, $request->all());
         return ApiResponse::created($quote);
     }
 
@@ -67,14 +66,32 @@ class QuoteController extends ApiController
         $shipment = Shipment::findOrFail($shipmentId);
         $quote = Quote::findOrFail($quoteId);
 
-        if ($request->user()->id !== $shipment->customer_id && $request->user()->role !== 'admin') {
-            return ApiResponse::error('FORBIDDEN', 'Only the shipment owner can select a quote', [], 403);
+        // P0-3: Integrity Check
+        if ($quote->shipment_id !== $shipment->id) {
+            return ApiResponse::error('INVALID_QUOTE', 'This quote does not belong to the specified shipment', [], 422);
         }
+
+        // P0-3: State validation
+        $allowedStatuses = [
+            ShipmentStateMachine::STATUS_RFQ, 
+            ShipmentStateMachine::STATUS_OFFERS_RECEIVED
+        ];
+        if (!in_array($shipment->status, $allowedStatuses)) {
+             return ApiResponse::error('INVALID_STATE', 'Selection is only allowed in RFQ or Offers Received states', [], 422);
+        }
+
+        $this->authorize('selectQuote', $shipment);
 
         $quote = $this->quoteService->selectQuote($quote);
         
-        // Update shipment status
-        $shipment->update(['status' => 'processing']);
+        // IMPORTANT: Refresh shipment to get updated prices from selectQuote
+        $shipment->refresh();
+
+        // Generate Invoice (P0.5)
+        $this->billingService->generate($shipment, $request->user()->id);
+
+        // Update shipment status via state machine
+        ShipmentStateMachine::transition($shipment, ShipmentStateMachine::STATUS_OFFER_SELECTED);
 
         return ApiResponse::ok($quote);
     }

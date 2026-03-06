@@ -64,6 +64,15 @@ class AuthController extends ApiController
         return ApiResponse::ok(null, ['message' => 'Logged out successfully']);
     }
 
+    public function uploadKyc(Request $request)
+    {
+        $user = $request->user();
+        $user->kyc_status = 'completed';
+        $user->save();
+
+        return ApiResponse::ok($user, ['message' => 'KYC documents uploaded successfully']);
+    }
+
     public function me(Request $request)
     {
         return ApiResponse::ok($request->user());

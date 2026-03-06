@@ -19,9 +19,21 @@ class ShipmentEngine
         if ($user->role === 'customer') {
             $query->where('customer_id', $user->id);
         } elseif ($user->role === 'partner') {
-            $query->whereHas('assignments', function ($q) use ($user) {
-                $q->whereHas('partner', function ($pq) use ($user) {
-                    $pq->where('user_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                // Assigned shipments
+                $q->whereHas('assignments', function ($aq) use ($user) {
+                    $aq->whereHas('partner', function ($pq) use ($user) {
+                        $pq->where('user_id', $user->id);
+                    });
+                })
+                // OR Invited RFQs
+                ->orWhere(function ($iq) use ($user) {
+                    $iq->whereIn('status', ['rfq', 'pending', 'offers_received'])
+                       ->whereHas('invitations', function ($invQ) use ($user) {
+                           $invQ->whereHas('partner', function ($pq) use ($user) {
+                               $pq->where('user_id', $user->id);
+                           });
+                       });
                 });
             });
         }
@@ -46,7 +58,7 @@ class ShipmentEngine
                 'tracking_number' => 'SNV-' . strtoupper(Str::random(8)),
                 'customer_id' => $customerId,
                 'created_by' => $creator->id,
-                'status' => $data['status'] ?? 'pending',
+                'status' => $data['status'] ?? 'rfq',
                 'origin' => $data['origin'],
                 'destination' => $data['destination'],
                 'mode' => $data['mode'] ?? 'sea',
@@ -59,6 +71,7 @@ class ShipmentEngine
                 'cargo_type' => $data['cargo_type'] ?? 'general',
                 'internal_value' => $data['internal_value'] ?? null,
                 'pallet_count' => $data['pallet_count'] ?? 1,
+                'pickup_date' => $data['pickup_date'] ?? null,
             ]);
         });
     }

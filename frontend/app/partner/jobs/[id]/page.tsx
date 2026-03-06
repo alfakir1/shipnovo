@@ -17,7 +17,7 @@ export default function PartnerJobDetailPage() {
     const { id } = useParams() as { id: string };
     const { data, isLoading } = usePartnerJob(id);
     const addEvent = useAddEvent();
-    const job = data?.data;
+    const job = data;
     const { t } = useI18n();
     const [eventForm, setEventForm] = useState({ status: 'transit', description: '' });
 
@@ -28,7 +28,7 @@ export default function PartnerJobDetailPage() {
                 data: {
                     status_code: eventForm.status,
                     description: eventForm.description,
-                    location: job?.shipment?.origin?.split(',')[0] || ''
+                    location: job?.origin?.split(',')[0] || ''
                 }
             });
             setEventForm({ status: 'transit', description: '' });
@@ -57,17 +57,17 @@ export default function PartnerJobDetailPage() {
                         </div>
                         <div>
                             <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--brand-orange-500)' }}>
-                                {t(`legType.${job.leg_type}`) || job.leg_type} {t('common.leg')}
+                                {t('partner.jobs.shipmentReference')}
                             </p>
                             <h1 className="text-2xl font-black tracking-tight text-foreground">
-                                {job.shipment?.tracking_number ?? `Job #${job.id}`}
+                                {job.tracking_number ?? `Shipment #${job.id}`}
                             </h1>
-                            {(job.shipment?.origin || job.shipment?.destination) && (
+                            {(job.origin || job.destination) && (
                                 <div className="flex items-center gap-2 mt-2 text-sm font-medium text-muted-foreground">
                                     <MapPin className="h-3.5 w-3.5" />
-                                    <span>{job.shipment?.origin?.split(',')[0]}</span>
+                                    <span>{job.origin?.split(',')[0]}</span>
                                     <ArrowRight className="h-3.5 w-3.5" />
-                                    <span>{job.shipment?.destination?.split(',')[0]}</span>
+                                    <span>{job.destination?.split(',')[0]}</span>
                                 </div>
                             )}
                         </div>
@@ -93,8 +93,8 @@ export default function PartnerJobDetailPage() {
                         <div className="bg-card rounded-xl border border-border shadow-sm p-6 space-y-5">
                             <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('partner.details.cargoDetails')}</h3>
                             <div className="grid grid-cols-2 gap-4">
-                                {[[t('common.description'), job.shipment?.description], [t('partner.details.weight'), `${job.shipment?.total_weight ?? '—'} ${job.shipment?.weight_unit ?? ''}`],
-                                [t('partner.details.volume'), job.shipment?.volume ? `${job.shipment.volume} m³` : '—'], [t('partner.details.cargoType'), job.shipment?.cargo_type]].map(([l, v]) => (
+                                {[[t('common.description'), job.description], [t('partner.details.weight'), `${job.total_weight ?? '—'} ${job.weight_unit ?? ''}`],
+                                [t('partner.details.volume'), job.volume ? `${job.volume} m³` : '—'], [t('partner.details.cargoType'), job.cargo_type]].map(([l, v]) => (
                                     <div key={l}>
                                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{l}</p>
                                         <p className="text-sm font-bold text-foreground mt-0.5 capitalize">{v ?? '—'}</p>

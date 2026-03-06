@@ -17,8 +17,9 @@ class TicketsService
     {
         return Ticket::create([
             'shipment_id' => $shipment->id,
-            'created_by_user_id' => $userId,
+            'customer_id' => $shipment->customer_id,
             'subject' => $data['subject'],
+            'description' => $data['description'] ?? $data['body'] ?? '',
             'status' => 'open',
         ]);
     }
@@ -27,8 +28,8 @@ class TicketsService
     {
         return TicketComment::create([
             'ticket_id' => $ticket->id,
-            'created_by_user_id' => $userId,
-            'body' => $body,
+            'user_id' => $userId,
+            'comment' => $body,
         ]);
     }
 

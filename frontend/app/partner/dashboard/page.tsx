@@ -2,6 +2,7 @@
 
 import { usePartnerJobs, usePartnerAnalytics } from "@/hooks/useShipments";
 import { TrendingUp, ArrowRight, Truck, DollarSign, BarChart3 } from "lucide-react";
+import { statusVariant } from "@/lib/status";
 import Link from "next/link";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ export default function PartnerDashboard() {
     const { data: analytics, isLoading: loadingA } = usePartnerAnalytics();
     const { data: jobsData, isLoading: loadingJobs } = usePartnerJobs();
 
-    const jobs = jobsData?.data?.data ?? jobsData?.data ?? [];
+    const jobs = jobsData ?? [];
 
     return (
         <div className="space-y-8 pb-12">
@@ -28,24 +29,24 @@ export default function PartnerDashboard() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <KpiCard
                     title="Total Earnings"
-                    value={loadingA ? '—' : `$${analytics?.total_earnings?.toLocaleString()}`}
+                    value={loadingA ? '—' : `$${(analytics?.total_earnings ?? 0).toLocaleString()}`}
                     icon={<DollarSign className="h-5 w-5" />}
                     accent
                 />
                 <KpiCard
                     title="Active Jobs"
-                    value={loadingA ? '—' : analytics?.active_jobs}
+                    value={loadingA ? '—' : (analytics?.active_jobs ?? 0)}
                     icon={<Truck className="h-5 w-5" />}
                     trend={{ value: 5, label: "vs last week", isPositive: true }}
                 />
                 <KpiCard
                     title="Warehouse Load"
-                    value={loadingA ? '—' : `${Math.round((analytics?.warehouse_utilization?.used / analytics?.warehouse_utilization?.total) * 100) || 0}%`}
+                    value={loadingA ? '—' : `${Math.round(((analytics?.warehouse_utilization?.used ?? 0) / (analytics?.warehouse_utilization?.total ?? 1)) * 100)}%`}
                     icon={<BarChart3 className="h-5 w-5" />}
                 />
                 <KpiCard
                     title="Quote Win Rate"
-                    value={loadingA ? '—' : `${(analytics?.quote_win_rate * 100).toFixed(0)}%`}
+                    value={loadingA ? '—' : `${((analytics?.quote_win_rate ?? 0) * 100).toFixed(0)}%`}
                     icon={<TrendingUp className="h-5 w-5" />}
                 />
             </div>
@@ -71,7 +72,7 @@ export default function PartnerDashboard() {
                     </div>
                 ) : jobs.length > 0 ? (
                     <div className="divide-y divide-border">
-                        {jobs.slice(0, 5).map((job: { id: number; status: string; leg_type: string; shipment?: { tracking_number: string } }) => (
+                        {jobs.slice(0, 5).map((job: any) => (
                             <Link key={job.id} href={`/partner/jobs/${job.id}`}
                                 className="flex items-center gap-4 px-6 py-4 hover:bg-muted/40 transition-colors group">
                                 <div className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -79,11 +80,11 @@ export default function PartnerDashboard() {
                                     <Truck className="h-4 w-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-foreground">{job.shipment?.tracking_number ?? `Job #${job.id}`}</p>
-                                    <p className="text-xs text-muted-foreground capitalize">{job.leg_type} {t('shipments.route')}</p>
+                                    <p className="text-sm font-bold text-foreground">{job.tracking_number}</p>
+                                    <p className="text-xs text-muted-foreground capitalize">{job.mode} {t('shipments.route')}</p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Badge variant={job.status === 'completed' ? 'success' : job.status === 'pending' ? 'pending' : 'secondary'}
+                                    <Badge variant={statusVariant(job.status)}
                                         className="capitalize">{t(`status.${job.status}`) || job.status}</Badge>
                                     <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity rtl-flip" />
                                 </div>

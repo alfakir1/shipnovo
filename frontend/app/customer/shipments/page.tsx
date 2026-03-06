@@ -15,7 +15,7 @@ import {
 export default function ShipmentListPage() {
     const { t } = useI18n();
     const { data, isLoading } = useShipments();
-    const shipments = data?.data?.data ?? [];
+    const shipments = data?.data ?? [];
 
     return (
         <div className="space-y-6 pb-12">
@@ -119,8 +119,8 @@ export default function ShipmentListPage() {
                                 <TableCell colSpan={5} className="h-72">
                                     <EmptyState
                                         illustrationSrc="/illustrations/empty-shipments.svg"
-                                        title={t('shipments.emptyTitle')}
-                                        description={t('shipments.emptyDesc')}
+                                        title={t('shipments.noShipments')}
+                                        description={t('shipments.noShipmentsDesc')}
                                         action={
                                             <Button asChild variant="accent">
                                                 <Link href="/customer/shipments/new">{t('shipments.newShipment')}</Link>

@@ -9,6 +9,7 @@ interface User {
     name: string;
     email: string;
     role: 'admin' | 'ops' | 'customer' | 'partner';
+    kyc_status: string;
 }
 
 interface AuthContextType {
@@ -52,29 +53,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const login = async (email: string, password: string) => {
-        const response = await api.post('/auth/login', { email, password });
-        if (response.data.data && !response.data.error) {
-            const { user, token } = response.data.data;
-            localStorage.setItem('auth_token', token);
-            setUser(user);
+        try {
+            const response = await api.post('/auth/login', { email, password });
+            if (response.data.data && !response.data.error) {
+                const { user, token } = response.data.data;
+                localStorage.setItem('auth_token', token);
+                setUser(user);
 
-            // Redirect based on role
-            if (user.role === 'admin' || user.role === 'ops') router.push('/ops/dashboard');
-            else if (user.role === 'partner') router.push('/partner/dashboard');
-            else router.push('/customer/dashboard');
-        } else {
-            throw new Error(response.data.error?.message || 'Login failed');
+                // Redirect based on role
+                if (user.role === 'admin' || user.role === 'ops') router.push('/ops/dashboard');
+                else if (user.role === 'partner') router.push('/partner/dashboard');
+                else router.push('/customer/dashboard');
+            } else {
+                throw new Error(response.data.error?.message || 'Login failed');
+            }
+        } catch (error: any) {
+            const message = error.response?.data?.message || error.response?.data?.error?.message || error.message || 'Login failed';
+            throw new Error(message);
         }
     };
 
     const register = async (data: Record<string, unknown>) => {
-        const response = await api.post('/auth/register', data);
-        if (response.data.data && !response.data.error) {
-            const { user, token } = response.data.data;
-            localStorage.setItem('auth_token', token);
-            setUser(user);
-        } else {
-            throw new Error(response.data.error?.message || 'Registration failed');
+        try {
+            const response = await api.post('/auth/register', data);
+            if (response.data.data && !response.data.error) {
+                const { user, token } = response.data.data;
+                localStorage.setItem('auth_token', token);
+                setUser(user);
+            } else {
+                throw new Error(response.data.error?.message || 'Registration failed');
+            }
+        } catch (error: any) {
+            const message = error.response?.data?.message || error.response?.data?.error?.message || error.message || 'Registration failed';
+            throw new Error(message);
         }
     };
 

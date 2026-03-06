@@ -32,6 +32,7 @@ class PaymentController extends ApiController
 
         $payment = $this->paymentService->authorize($shipment, $amount);
         $payment->status = 'authorized'; // Fix tests expecting authorized logic here
+        $payment->save();
         return ApiResponse::ok($payment);
     }
 

@@ -12,7 +12,7 @@ import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function OpsShipmentsPage() {
     const { data, isLoading } = useShipments();
-    const shipments = data?.data?.data ?? [];
+    const shipments = Array.isArray(data) ? data : data?.data ?? [];
     const { t } = useI18n();
 
     return (
@@ -31,7 +31,7 @@ export default function OpsShipmentsPage() {
                 </div>
                 <select className="h-9 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:outline-none">
                     <option value="">{t('ops.shipments.allStatuses')}</option>
-                    <option value="pending">{t('status.pending')}</option>
+                    <option value="rfq">{t('status.rfq')}</option>
                     <option value="transit">{t('status.transit')}</option>
                     <option value="delivered">{t('status.delivered')}</option>
                     <option value="cancelled">{t('status.cancelled')}</option>
@@ -47,10 +47,10 @@ export default function OpsShipmentsPage() {
                     <TableHeader style={{ backgroundColor: 'var(--brand-navy-50)' }}>
                         <TableRow>
                             <TableHead className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--brand-navy-500)' }}>{t('common.shipments')}</TableHead>
-                            <TableHead className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--brand-navy-500)' }}>{t('common.customer') || 'Customer'}</TableHead>
-                            <TableHead className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--brand-navy-500)' }}>{t('common.route') || 'Route'}</TableHead>
+                            <TableHead className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--brand-navy-500)' }}>{t('auth.name')}</TableHead>
+                            <TableHead className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--brand-navy-500)' }}>{t('shipments.route')}</TableHead>
                             <TableHead className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--brand-navy-500)' }}>{t('common.status')}</TableHead>
-                            <TableHead className="text-[11px] font-bold uppercase tracking-wider text-right" style={{ color: 'var(--brand-navy-500)' }}>{t('common.value') || 'Value'}</TableHead>
+                            <TableHead className="text-[11px] font-bold uppercase tracking-wider text-right rtl:text-left" style={{ color: 'var(--brand-navy-500)' }}>{t('common.internalValue')}</TableHead>
                             <TableHead className="w-16" />
                         </TableRow>
                     </TableHeader>
@@ -82,12 +82,12 @@ export default function OpsShipmentsPage() {
                                 <TableCell>
                                     <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
                                         <span className="truncate max-w-[70px]">{s.origin?.split(',')[0]}</span>
-                                        <ArrowRight className="h-3 w-3 flex-shrink-0" />
+                                        <ArrowRight className="h-3 w-3 flex-shrink-0 rtl-flip" />
                                         <span className="truncate max-w-[70px]">{s.destination?.split(',')[0]}</span>
                                     </div>
                                 </TableCell>
-                                <TableCell><Badge variant={statusVariant(s.status)} className="capitalize">{s.status}</Badge></TableCell>
-                                <TableCell className="text-right text-sm font-bold text-foreground">${(s.customer_price ?? 0).toLocaleString()}</TableCell>
+                                <TableCell><Badge variant={statusVariant(s.status)} className="capitalize">{t(`status.${s.status}`) || s.status}</Badge></TableCell>
+                                <TableCell className="text-right rtl:text-left text-sm font-bold text-foreground">${(s.customer_price ?? 0).toLocaleString()}</TableCell>
                                 <TableCell>
                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button variant="ghost" size="icon" asChild className="h-8 w-8">
@@ -101,7 +101,7 @@ export default function OpsShipmentsPage() {
                             <TableRow>
                                 <TableCell colSpan={6} className="h-72">
                                     <EmptyState illustrationSrc="/illustrations/empty-shipments.svg"
-                                        title={t('ops.shipments.noShipments') || 'No shipments found'} description={t('ops.shipments.noShipmentsDesc') || 'Shipments will appear here once customers book them.'} />
+                                        title={t('ops.shipments.noShipments')} description={t('ops.shipments.noShipmentsDesc')} />
                                 </TableCell>
                             </TableRow>
                         )}

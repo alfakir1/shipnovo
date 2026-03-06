@@ -45,7 +45,7 @@ export default function PublicTrackingPage() {
         title: e.title,
         description: e.description,
         date: new Date(e.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        status: e.is_current ? 'current' : 'completed',
+        status: (e.is_current ? 'current' : 'completed') as "completed" | "current" | "pending",
     }));
 
     return (

@@ -4,6 +4,7 @@ import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { I18nProvider } from "@/components/providers/I18nProvider";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 
@@ -20,13 +21,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full`}>
       <body className="h-full antialiased font-sans bg-background text-foreground transition-colors duration-300">
-        <I18nProvider>
-          <QueryProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </QueryProvider>
-        </I18nProvider>
+        <ErrorBoundary>
+          <I18nProvider>
+            <QueryProvider>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </QueryProvider>
+          </I18nProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

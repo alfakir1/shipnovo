@@ -8,27 +8,36 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Timeline } from "@/components/ui/timeline";
-import { useShipment, useTickets, useInvoices, useDocuments, useAuthorizePayment, useCapturePayment, ShipmentEvent, ShipmentDocument } from "@/hooks/useShipments";
+import { useShipment, useShipmentTickets, useCreateTicket, useInvoices, useDocuments, useAuthorizePayment, useCapturePayment, useShipmentQuotes, useSelectQuote, ShipmentEvent, ShipmentDocument, Quote } from "@/hooks/useShipments";
 import { useAppConfig } from "@/hooks/useConfig";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CreditCard, RefreshCw, AlertTriangle, Star, CheckCircle } from "lucide-react";
 import { useState } from "react";
 
 export default function ShipmentDetailPage() {
     const { t } = useI18n();
+    const router = useRouter();
     const { id } = useParams() as { id: string };
     const { data, isLoading } = useShipment(id);
     const { data: configData } = useAppConfig();
     const config = configData;
-    const { data: ticketsData } = useTickets({ shipment_id: id });
+    const { data: ticketsData, refetch: refetchTickets } = useShipmentTickets(id);
+    const createTicket = useCreateTicket();
     const { data: invoicesData } = useInvoices({ shipment_id: id });
     const { data: docsData } = useDocuments({ shipment_id: id });
+    const { data: quotesData, isLoading: loadingQuotes } = useShipmentQuotes(id);
+    const selectQuote = useSelectQuote();
 
-    const shipment = data?.data;
-    const tickets = ticketsData?.data?.data ?? [];
-    const invoices = invoicesData?.data?.data ?? [];
-    const docs = docsData?.data?.data ?? [];
+    const shipment = data;
+    const tickets = Array.isArray(ticketsData) ? ticketsData : (ticketsData as { data?: unknown[] })?.data ?? [];
+    const invoices = Array.isArray(invoicesData) ? invoicesData : (invoicesData as { data?: unknown[] })?.data ?? [];
+    const docs = Array.isArray(docsData) ? docsData : (docsData as { data?: unknown[] })?.data ?? [];
+    const quotes = Array.isArray(quotesData) ? quotesData : (quotesData as { data?: unknown[] })?.data ?? [];
+
+    const [ticketSubject, setTicketSubject] = useState('');
+    const [ticketBody, setTicketBody] = useState('');
 
     const authorizePayment = useAuthorizePayment();
     const capturePayment = useCapturePayment();
@@ -36,6 +45,7 @@ export default function ShipmentDetailPage() {
     const [showRating, setShowRating] = useState(false);
     const [ratingVal, setRatingVal] = useState(0);
     const [ratingSubmitted, setRatingSubmitted] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
 
     if (isLoading) return (
         <div className="space-y-6">
@@ -53,11 +63,22 @@ export default function ShipmentDetailPage() {
         title: e.status ?? e.title,
         description: e.description ?? e.remarks,
         date: e.created_at ? new Date(e.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : undefined,
-        status: e.is_current ? 'current' : (e.created_at ? 'completed' : 'pending'),
+        status: (e.is_current ? 'current' : (e.created_at ? 'completed' : 'pending')) as "current" | "completed" | "pending" | undefined,
     }));
 
     return (
         <div className="space-y-6 pb-12">
+            {/* Action Errors */}
+            {actionError && (
+                <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl flex items-center justify-between gap-4 animate-in slide-in-from-top-2">
+                    <div className="flex items-center gap-3 text-destructive text-sm font-medium">
+                        <AlertTriangle className="h-4 w-4" />
+                        {actionError}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setActionError(null)} className="h-8 w-8 p-0 text-destructive hover:bg-destructive/20">×</Button>
+                </div>
+            )}
+
             {/* Hero */}
             <div className="bg-card rounded-xl border border-border shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -84,40 +105,47 @@ export default function ShipmentDetailPage() {
             </div>
 
             {/* Banners */}
-            {shipment.status === 'rfq' && (
+            {(shipment.status === 'rfq' || shipment.status === 'offers_received') && (
                 <div className="bg-brand-orange-50 border-2 border-brand-orange-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-300">
                     <div className="flex gap-4 items-center">
                         <div className="h-10 w-10 rounded-full bg-brand-orange-100 flex items-center justify-center text-brand-orange-600">
                             <Package className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="font-bold text-brand-orange-950">Quotation Pending</p>
-                            <p className="text-xs text-brand-orange-800">Compare quotes from verified partners to proceed.</p>
+                            <p className="font-bold text-brand-orange-950">{t('shipments.rfqStatusTitle')}</p>
+                            <p className="text-xs text-brand-orange-800">{t('shipments.rfqStatusDesc')}</p>
                         </div>
                     </div>
                     <Link href={`/customer/shipments/${id}/quotes`}>
-                        <Button variant="accent">View Quotes</Button>
+                        <Button variant="accent">{t('shipments.viewQuotes')}</Button>
                     </Link>
                 </div>
             )}
-
-            {shipment.status === 'processing' && !shipment.payment && (
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-left duration-300">
+            {/* Payment Banner */}
+            {(shipment.status === 'offer_selected' || shipment.status === 'processing') && !shipment.payment && (
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-top-4 duration-500 delay-150">
                     <div className="flex gap-4 items-center">
                         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                             <CreditCard className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="font-bold text-blue-950">Payment Required</p>
-                            <p className="text-xs text-blue-800">Authorize the total amount to start the shipping process.</p>
+                            <p className="font-bold text-blue-950">{t('billing.paymentRequired')}</p>
+                            <p className="text-xs text-blue-800">{t('billing.paymentRequiredDesc')}</p>
                         </div>
                     </div>
                     <Button
                         className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
-                        onClick={() => authorizePayment.mutate({ shipmentId: id, amount: shipment.customer_price })}
+                        onClick={async () => {
+                            setActionError(null);
+                            try {
+                                await authorizePayment.mutateAsync({ shipmentId: id, amount: shipment.customer_price || 0 });
+                            } catch (err: any) {
+                                setActionError(err.message || t('common.errorOccurred'));
+                            }
+                        }}
                         disabled={authorizePayment.isPending}
                     >
-                        {authorizePayment.isPending ? 'Authorizing...' : `Pay $${shipment.customer_price?.toLocaleString()}`}
+                        {authorizePayment.isPending ? t('common.loading') : `Pay $${shipment.customer_price?.toLocaleString()}`}
                     </Button>
                 </div>
             )}
@@ -129,8 +157,8 @@ export default function ShipmentDetailPage() {
                             <CheckCircle className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="font-bold text-green-950">Confirm Delivery</p>
-                            <p className="text-xs text-green-800">Has your shipment arrived? Confirm receipt to release the escrow payment to the partner.</p>
+                            <p className="font-bold text-green-950">{t('shipments.confirmDelivery')}</p>
+                            <p className="text-xs text-green-800">{t('shipments.confirmDeliveryDesc')}</p>
                         </div>
                     </div>
                     <Button
@@ -141,7 +169,7 @@ export default function ShipmentDetailPage() {
                         }}
                         disabled={capturePayment.isPending}
                     >
-                        {capturePayment.isPending ? 'Releasing...' : 'Confirm Receipt'}
+                        {capturePayment.isPending ? t('common.loading') : t('shipments.confirmReceipt')}
                     </Button>
                 </div>
             )}
@@ -150,8 +178,8 @@ export default function ShipmentDetailPage() {
             {showRating && !ratingSubmitted && (
                 <div className="bg-card border-2 border-accent rounded-xl p-6 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-                    <h3 className="text-lg font-black text-foreground mb-2">Rate Your Experience</h3>
-                    <p className="text-sm text-muted-foreground mb-6">How was the delivery partner&apos;s service for this shipment?</p>
+                    <h3 className="text-lg font-black text-foreground mb-2">{t('shipments.rateExperience')}</h3>
+                    <p className="text-sm text-muted-foreground mb-6">{t('shipments.rateExperienceDesc')}</p>
                     <div className="flex gap-2 mb-6">
                         {[1, 2, 3, 4, 5].map(star => (
                             <button key={star} onClick={() => setRatingVal(star)} className={`p-2 rounded-full transition-transform hover:scale-110 ${ratingVal >= star ? 'text-brand-orange-500' : 'text-muted-foreground/30'}`}>
@@ -159,12 +187,12 @@ export default function ShipmentDetailPage() {
                             </button>
                         ))}
                     </div>
-                    <Button disabled={!ratingVal} onClick={() => setRatingSubmitted(true)} variant="accent">Submit Review</Button>
+                    <Button disabled={!ratingVal} onClick={() => setRatingSubmitted(true)} variant="accent">{t('shipments.submitReview')}</Button>
                 </div>
             )}
             {ratingSubmitted && (
                 <div className="bg-brand-orange-50/50 border border-brand-orange-100 rounded-xl p-4 text-center">
-                    <p className="text-sm font-bold text-brand-orange-950">Thanks for your feedback! 🌟</p>
+                    <p className="text-sm font-bold text-brand-orange-950">{t('shipments.ratingThanks')}</p>
                 </div>
             )}
 
@@ -173,10 +201,12 @@ export default function ShipmentDetailPage() {
                 <TabsList className="bg-card border border-border h-11 p-1">
                     <TabsTrigger value="overview">{t('shipments.overview')}</TabsTrigger>
                     <TabsTrigger value="tracking">{t('shipments.tracking')}</TabsTrigger>
+                    <TabsTrigger value="quotes">{t('common.quotes')} {quotes.length > 0 && <span className="ms-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-600">{quotes.length}</span>}</TabsTrigger>
+                    <TabsTrigger value="partners">{t('common.partners')}</TabsTrigger>
                     <TabsTrigger value="documents">{t('shipments.documents')} {docs.length > 0 && <span className="ms-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-accent/20 text-accent">{docs.length}</span>}</TabsTrigger>
                     <TabsTrigger value="billing">{t('shipments.billing')}</TabsTrigger>
                     <TabsTrigger value="tickets">{t('shipments.tickets')} {tickets.length > 0 && <span className="ms-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-accent/20 text-accent">{tickets.length}</span>}</TabsTrigger>
-                    <TabsTrigger value="returns">Returns</TabsTrigger>
+                    <TabsTrigger value="returns">{t('shipments.returns')}</TabsTrigger>
                 </TabsList>
 
                 {/* Overview */}
@@ -189,9 +219,9 @@ export default function ShipmentDetailPage() {
                                     [t('common.noDescription'), shipment.description],
                                     [t('shipments.weight'), `${shipment.total_weight} ${shipment.weight_unit}`],
                                     [t('shipments.volume'), shipment.volume ? `${shipment.volume} m³` : '—'],
-                                    [t('auth.role'), shipment.cargo_type],
-                                    [t('pricing.serviceStream'), shipment.service_type],
-                                    [t('landing.how2Title'), shipment.mode ?? '—'],
+                                    [t('auth.role'), t(`shipments.${shipment.cargo_type}`) || shipment.cargo_type],
+                                    [t('pricing.serviceStream'), t(`shipments.${shipment.service_type}`) || shipment.service_type],
+                                    [t('landing.how2Title'), (t(`shipments.${shipment.mode}`) || shipment.mode) ?? '—'],
                                 ].map(([label, value]) => (
                                     <div key={label}>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{label}</p>
@@ -267,6 +297,91 @@ export default function ShipmentDetailPage() {
                     </div>
                 </TabsContent>
 
+                {/* Quotes */}
+                <TabsContent value="quotes">
+                    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                        <div className="p-5 border-b border-border">
+                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('shipments.compareQuotes')}</h3>
+                        </div>
+                        {loadingQuotes ? (
+                            <div className="p-12 text-center text-muted-foreground">{t('common.loading')}</div>
+                        ) : quotes.length > 0 ? (
+                            <div className="divide-y divide-border">
+                                {quotes.map((q: Quote) => (
+                                    <div key={q.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-muted/10 transition-colors">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-bold text-foreground">{q.partner?.company_name}</p>
+                                                <Badge variant="info" className="text-[10px] py-0">{t('common.roles.partner')}</Badge>
+                                            </div>
+                                            <div className="flex gap-4 text-xs text-muted-foreground">
+                                                <div className="flex items-center gap-1">
+                                                    <ArrowRight className="h-3 w-3" /> {q.eta_days} {t('common.timeline')}
+                                                </div>
+                                            </div>
+                                            {q.notes && <p className="text-xs italic text-muted-foreground">&quot;{q.notes}&quot;</p>}
+                                        </div>
+                                        <div className="flex items-center gap-6">
+                                            <p className="text-xl font-black text-foreground">${q.amount.toLocaleString()}</p>
+                                            {shipment.status === 'offer_selected' || shipment.status === 'processing' ? (
+                                                q.status === 'accepted' ? (
+                                                    <Badge variant="success">{t('status.accepted')}</Badge>
+                                                ) : <Badge variant="neutral" className="opacity-50">{t('status.cancelled')}</Badge>
+                                            ) : (
+                                                <Button
+                                                    variant="accent"
+                                                    size="sm"
+                                                    disabled={selectQuote.isPending}
+                                                    onClick={async () => {
+                                                        setActionError(null);
+                                                        try {
+                                                            await selectQuote.mutateAsync({ shipmentId: id, quoteId: q.id });
+                                                        } catch (err: any) {
+                                                            setActionError(err.message || t('common.errorOccurred'));
+                                                        }
+                                                    }}
+                                                >
+                                                    {selectQuote.isPending ? t('common.loading') : t('shipments.bookNow')}
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <EmptyState title={t('shipments.noQuotes') || 'No quotes yet'} description={t('shipments.rfqStatusDesc')} className="py-16" />
+                        )}
+                    </div>
+                </TabsContent>
+
+                {/* Partners */}
+                <TabsContent value="partners">
+                    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                        <div className="flex items-center justify-between p-5 border-b border-border">
+                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('ops.shipments.partnerAssignments')}</h3>
+                        </div>
+                        {(shipment?.assignments?.length ?? 0) > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6">
+                                {shipment.assignments?.map((asn: any) => (
+                                    <div key={asn.id} className="p-5 bg-muted/30 rounded-xl border border-border">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="h-10 w-10 rounded-xl flex items-center justify-center text-sm font-black text-white"
+                                                style={{ backgroundColor: 'var(--brand-navy-700)' }}>
+                                                {asn.partner?.company_name?.[0] ?? 'P'}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--brand-orange-500)' }}>{asn.leg_type}</p>
+                                                <p className="text-sm font-bold text-foreground">{asn.partner?.company_name}</p>
+                                            </div>
+                                        </div>
+                                        <Badge variant={statusVariant(asn.status)} className="capitalize text-[10px]">{asn.status}</Badge>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : <EmptyState title={t('common.noAssignments')} description={t('ops.shipments.noAssignmentsDesc')} className="py-16" />}
+                    </div>
+                </TabsContent>
+
                 {/* Documents */}
                 <TabsContent value="documents">
                     <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
@@ -326,7 +441,69 @@ export default function ShipmentDetailPage() {
                     </div>
                 </TabsContent>
 
-                {/* Tickets tab ... (keep existing) */}
+                {/* Tickets tab */}
+                <TabsContent value="tickets">
+                    <div className="space-y-6">
+                        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">{t('shipments.openTicket') || 'Open a Ticket'}</h3>
+                            <div className="space-y-3">
+                                <input
+                                    value={ticketSubject}
+                                    onChange={e => setTicketSubject(e.target.value)}
+                                    placeholder={t('shipments.ticketSubject') || 'Subject'}
+                                    className="w-full h-10 px-3 rounded-lg border border-border bg-muted/30 text-sm focus:outline-none focus:ring-2 transition-all"
+                                />
+                                <textarea
+                                    value={ticketBody}
+                                    onChange={e => setTicketBody(e.target.value)}
+                                    placeholder={t('shipments.ticketBody') || 'Describe the issue...'}
+                                    rows={3}
+                                    className="w-full px-3 py-2.5 rounded-lg border border-border bg-muted/30 text-sm focus:outline-none focus:ring-2 transition-all resize-none"
+                                />
+                                <Button
+                                    variant="accent"
+                                    disabled={!ticketSubject || createTicket.isPending}
+                                    onClick={() => {
+                                        if (!ticketSubject || !ticketBody) return;
+                                        createTicket.mutate({
+                                            shipmentId: id,
+                                            data: {
+                                                subject: ticketSubject,
+                                                description: ticketBody
+                                            }
+                                        }, {
+                                            onSuccess: () => {
+                                                setTicketSubject('');
+                                                setTicketBody('');
+                                                refetchTickets();
+                                            }
+                                        });
+                                    }}
+                                >{createTicket.isPending ? t('common.loading') : (t('shipments.submitTicket') || 'Submit Ticket')}</Button>
+                            </div>
+                        </div>
+                        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                            <div className="p-5 border-b border-border">
+                                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('shipments.tickets')}</h3>
+                            </div>
+                            {tickets.length > 0 ? (
+                                <div className="divide-y divide-border">
+                                    {tickets.map((tk: { id: number; subject: string; status: string; created_at: string }) => (
+                                        <div key={tk.id} className="flex items-center justify-between px-6 py-4">
+                                            <div>
+                                                <p className="text-sm font-bold text-foreground">{tk.subject}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(tk.created_at).toLocaleDateString()}</p>
+                                            </div>
+                                            <Badge variant={tk.status === 'resolved' ? 'success' : 'warning'} className="capitalize">{tk.status}</Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyState title={t('shipments.noTickets') || 'No tickets yet'} description={t('shipments.noTicketsDesc') || 'Open a ticket above for support'} className="py-12" />
+                            )}
+                        </div>
+                    </div>
+                </TabsContent>
 
                 {/* Returns */}
                 <TabsContent value="returns">
@@ -335,14 +512,13 @@ export default function ShipmentDetailPage() {
                             <RefreshCw className="h-8 w-8" />
                         </div>
                         <div>
-                            <p className="font-bold text-foreground text-lg">Return Policy</p>
+                            <p className="font-bold text-foreground text-lg">{t('shipments.returnPolicy')}</p>
                             <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-2">
-                                Returns can be requested once the shipment is marked as delivered.
-                                Our team will review your request within 24-48 hours.
+                                {t('shipments.returnPolicyDesc')}
                             </p>
                         </div>
                         <Button variant="outline" disabled={shipment.status !== 'delivered'}>
-                            Create Return Request
+                            {t('shipments.createReturn')}
                         </Button>
                     </div>
                 </TabsContent>

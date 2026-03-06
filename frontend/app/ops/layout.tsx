@@ -1,9 +1,16 @@
-import AppShell from "@/components/layout/AppShell";
+'use client';
+
+import RoleGuard from "@/components/auth/RoleGuard";
 
 export default function OpsLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    return <AppShell>{children}</AppShell>;
+    return (
+        <RoleGuard allowedRoles={['admin', 'ops']}>
+            {children}
+        </RoleGuard>
+    );
 }
+

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'role',
         'subscription_plan',
         'company_name',
+        'kyc_status',
     ];
 
     /**

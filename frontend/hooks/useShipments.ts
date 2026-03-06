@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
+import apiClient from '@/lib/api-client';
 
 export interface Shipment {
     id: number;
@@ -11,6 +11,7 @@ export interface Shipment {
     partner_id?: number;
     total_weight?: number;
     weight_unit?: string;
+    volume?: number;
     cargo_type?: string;
     description?: string;
     service_type?: string;
@@ -19,6 +20,11 @@ export interface Shipment {
     internal_value?: number;
     created_at: string;
     updated_at: string;
+    payment?: {
+        id: number;
+        status: string;
+        amount: number;
+    };
     customer?: {
         name: string;
         company_name?: string;
@@ -58,14 +64,23 @@ export interface ShipmentEvent {
 
 export interface Quote {
     id: number;
+    shipment_id: number;
+    partner_id: number;
     amount: number;
-    price?: number;
-    service_type?: string;
+    currency: string;
     eta_days: number;
-    notes?: string;
-    partner?: {
-        company_name: string;
-    };
+    notes: string | null;
+    status: string;
+    partner?: Partner;
+    created_at: string;
+}
+
+export interface SimulatedQuote {
+    id: string | number;
+    price: number;
+    eta_days: number;
+    service_type: string;
+    amount?: number; // fallback
 }
 
 export interface Partner {
@@ -106,8 +121,8 @@ export function useShipments(params?: Record<string, unknown>) {
     return useQuery({
         queryKey: ['shipments', params],
         queryFn: async () => {
-            const response = await api.get('/shipments', { params });
-            return response.data.data;
+            const response = await apiClient.get('/shipments', { params });
+            return response.data?.data ?? response.data;
         },
     });
 }
@@ -116,8 +131,8 @@ export function useShipment(id: string | number) {
     return useQuery<Shipment>({
         queryKey: ['shipment', id],
         queryFn: async () => {
-            const response = await api.get(`/shipments/${id}`);
-            return response.data.data;
+            const response = await apiClient.get(`/shipments/${id}`);
+            return response.data?.data ?? response.data;
         },
         enabled: !!id,
     });
@@ -127,8 +142,8 @@ export function useCreateShipment() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: Record<string, unknown>) => {
-            const response = await api.post('/shipments', data);
-            return response.data.data;
+            const response = await apiClient.post('/shipments', data);
+            return response.data?.data ?? response.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['shipments'] });
@@ -140,8 +155,8 @@ export function useUpdateShipment() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, data }: { id: string | number, data: Record<string, unknown> }) => {
-            const response = await api.patch(`/shipments/${id}`, data);
-            return response.data.data;
+            const response = await apiClient.patch(`/shipments/${id}`, data);
+            return response.data;
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['shipments'] });
@@ -151,11 +166,11 @@ export function useUpdateShipment() {
 }
 
 export function useQuotes(params?: Record<string, unknown>) {
-    return useQuery<Quote[]>({
+    return useQuery<SimulatedQuote[]>({
         queryKey: ['quotes', params],
         queryFn: async () => {
-            const response = await api.get('/shipments/quotes', { params });
-            return response.data.data;
+            const response = await apiClient.get('/shipments/quotes', { params });
+            return response.data;
         },
         enabled: !!(params?.origin && params?.destination),
     });
@@ -165,8 +180,8 @@ export function useAssignments(shipmentId: string | number) {
     return useQuery({
         queryKey: ['assignments', shipmentId],
         queryFn: async () => {
-            const response = await api.get(`/shipments/${shipmentId}/assignments`);
-            return response.data.data;
+            const response = await apiClient.get(`/shipments/${shipmentId}/assignments`);
+            return response.data;
         },
         enabled: !!shipmentId
     });
@@ -176,8 +191,8 @@ export function useCreateTicket() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ shipmentId, data }: { shipmentId: string | number, data: Record<string, unknown> }) => {
-            const response = await api.post(`/shipments/${shipmentId}/tickets`, data);
-            return response.data.data;
+            const response = await apiClient.post(`/shipments/${shipmentId}/tickets`, data);
+            return response.data;
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', variables.shipmentId.toString()] });
@@ -189,8 +204,8 @@ export function useAddComment() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ ticketId, body }: { ticketId: number, body: string, shipmentId: string }) => {
-            const response = await api.post(`/tickets/${ticketId}/comments`, { body });
-            return response.data.data;
+            const response = await apiClient.post(`/tickets/${ticketId}/comments`, { body });
+            return response.data;
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', variables.shipmentId] });
@@ -205,10 +220,10 @@ export function useUploadDocument() {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('type', type);
-            const response = await api.post(`/shipments/${shipmentId}/documents`, formData, {
+            const response = await apiClient.post(`/shipments/${shipmentId}/documents`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            return response.data.data;
+            return response.data;
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', variables.shipmentId] });
@@ -220,8 +235,8 @@ export function usePartners() {
     return useQuery({
         queryKey: ['partners'],
         queryFn: async () => {
-            const response = await api.get('/partners');
-            return response.data.data;
+            const response = await apiClient.get('/partners');
+            return response.data;
         }
     });
 }
@@ -230,8 +245,8 @@ export function useAssignPartner() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ shipmentId, partnerId, legType }: { shipmentId: number, partnerId: number, legType: string }) => {
-            const response = await api.post(`/shipments/${shipmentId}/assignments`, { partner_id: partnerId, leg_type: legType });
-            return response.data.data;
+            const response = await apiClient.post(`/shipments/${shipmentId}/assignments`, { partner_id: partnerId, leg_type: legType });
+            return response.data;
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['shipments'] });
@@ -245,8 +260,8 @@ export function useAddEvent() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ shipmentId, data }: { shipmentId: string | number, data: Record<string, unknown> }) => {
-            const response = await api.post(`/shipments/${shipmentId}/events`, data);
-            return response.data.data;
+            const response = await apiClient.post(`/shipments/${shipmentId}/events`, data);
+            return response.data;
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', variables.shipmentId.toString()] });
@@ -260,8 +275,8 @@ export function usePartnerJobs(params?: Record<string, unknown>) {
     return useQuery({
         queryKey: ['partner-jobs', params],
         queryFn: async () => {
-            const response = await api.get('/shipments', { params });
-            return response.data.data;
+            const response = await apiClient.get('/shipments', { params });
+            return response.data;
         },
     });
 }
@@ -270,8 +285,8 @@ export function usePartnerJob(id: string | number) {
     return useQuery({
         queryKey: ['partner-job', id],
         queryFn: async () => {
-            const response = await api.get(`/shipments/${id}`);
-            return response.data.data;
+            const response = await apiClient.get(`/shipments/${id}`);
+            return response.data;
         },
         enabled: !!id,
     });
@@ -283,18 +298,34 @@ export function useTickets(params?: Record<string, unknown>) {
     return useQuery({
         queryKey: ['tickets', params],
         queryFn: async () => {
-            const response = await api.get('/tickets', { params });
-            return response.data.data;
+            const response = await apiClient.get('/tickets', { params });
+            return response.data;
         },
     });
 }
 
-export function useInvoices(params?: Record<string, unknown>) {
+export function useShipmentTickets(shipmentId: string | number) {
+    return useQuery({
+        queryKey: ['shipment-tickets', shipmentId],
+        queryFn: async () => {
+            const response = await apiClient.get(`/shipments/${shipmentId}/tickets`);
+            return response.data;
+        },
+        enabled: !!shipmentId,
+    });
+}
+
+export function useInvoices(params?: Record<string, any>) {
     return useQuery({
         queryKey: ['invoices', params],
         queryFn: async () => {
-            const response = await api.get('/invoices', { params });
-            return response.data.data;
+            if (params?.shipment_id) {
+                const response = await apiClient.get(`/shipments/${params.shipment_id}/invoice`);
+                const rawData = response.data?.data ?? response.data;
+                return Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+            }
+            const response = await apiClient.get('/invoices', { params });
+            return response.data?.data ?? response.data;
         },
     });
 }
@@ -303,8 +334,8 @@ export function useDocuments(params?: Record<string, unknown>) {
     return useQuery({
         queryKey: ['documents', params],
         queryFn: async () => {
-            const response = await api.get('/documents', { params });
-            return response.data.data;
+            const response = await apiClient.get('/documents', { params });
+            return response.data?.data ?? response.data;
         },
     });
 }
@@ -314,8 +345,8 @@ export function useShipmentQuotes(shipmentId: string | number) {
     return useQuery({
         queryKey: ['shipment-quotes', shipmentId],
         queryFn: async () => {
-            const response = await api.get(`/shipments/${shipmentId}/quotes`);
-            return response.data.data;
+            const response = await apiClient.get(`/shipments/${shipmentId}/quotes`);
+            return response.data?.data ?? response.data;
         },
         enabled: !!shipmentId
     });
@@ -325,8 +356,8 @@ export function useSubmitQuote() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ shipmentId, data }: { shipmentId: string | number, data: Record<string, unknown> }) => {
-            const response = await api.post(`/shipments/${shipmentId}/quotes`, data);
-            return response.data.data;
+            const response = await apiClient.post(`/shipments/${shipmentId}/quotes`, data);
+            return response.data?.data ?? response.data;
         },
         onSuccess: (_, v) => {
             queryClient.invalidateQueries({ queryKey: ['shipment-quotes', v.shipmentId.toString()] });
@@ -338,12 +369,13 @@ export function useSelectQuote() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ shipmentId, quoteId }: { shipmentId: string | number, quoteId: number }) => {
-            const response = await api.post(`/shipments/${shipmentId}/quotes/${quoteId}/select`);
-            return response.data.data;
+            const response = await apiClient.post(`/shipments/${shipmentId}/quotes/${quoteId}/select`);
+            return response.data?.data ?? response.data;
         },
         onSuccess: (_, v) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', v.shipmentId.toString()] });
             queryClient.invalidateQueries({ queryKey: ['shipment-quotes', v.shipmentId.toString()] });
+            queryClient.invalidateQueries({ queryKey: ['invoices'] });
         }
     });
 }
@@ -353,8 +385,8 @@ export function useAuthorizePayment() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ shipmentId, amount }: { shipmentId: string | number, amount: number }) => {
-            const response = await api.post(`/shipments/${shipmentId}/authorize`, { amount });
-            return response.data.data;
+            const response = await apiClient.post(`/shipments/${shipmentId}/payments/authorize`, { amount });
+            return response.data?.data ?? response.data;
         },
         onSuccess: (_, v) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', v.shipmentId.toString()] });
@@ -366,8 +398,8 @@ export function useCapturePayment() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ shipmentId }: { shipmentId: string | number }) => {
-            const response = await api.post(`/shipments/${shipmentId}/capture`);
-            return response.data.data;
+            const response = await apiClient.post(`/shipments/${shipmentId}/payments/capture`);
+            return response.data;
         },
         onSuccess: (_, v) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', v.shipmentId.toString()] });
@@ -380,8 +412,8 @@ export function usePendingPartners() {
     return useQuery({
         queryKey: ['pending-partners'],
         queryFn: async () => {
-            const response = await api.get('/partners/pending');
-            return response.data.data;
+            const response = await apiClient.get('/partners/pending');
+            return response.data;
         }
     });
 }
@@ -390,8 +422,8 @@ export function useApprovePartner() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ id, notes }: { id: number, notes?: string }) => {
-            const response = await api.patch(`/partners/${id}/approve`, { notes });
-            return response.data.data;
+            const response = await apiClient.patch(`/partners/${id}/approve`, { notes });
+            return response.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['pending-partners'] });
@@ -405,23 +437,40 @@ export function useCreateReturn() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ shipmentId, reason }: { shipmentId: string | number, reason: string }) => {
-            const response = await api.post(`/shipments/${shipmentId}/returns`, { reason });
-            return response.data.data;
+            const response = await apiClient.post(`/shipments/${shipmentId}/returns`, { reason });
+            return response.data;
         },
         onSuccess: (_, v) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', v.shipmentId.toString()] });
         }
     });
 }
+
 /* ─── P0: Audit Logs ─── */
 export function useAuditLogs() {
     return useQuery({
         queryKey: ['audit-logs'],
         queryFn: async () => {
-            const response = await api.get('/audit-logs');
-            return response.data.data;
+            const response = await apiClient.get('/audit-logs');
+            return response.data;
         }
     });
+}
+
+export interface Warehouse {
+    id: number;
+    name: string;
+    location: string;
+    capacity: number;
+    used_capacity: number;
+}
+
+export interface InventoryItem {
+    id: number;
+    sku: string;
+    name: string;
+    quantity: number;
+    warehouse_id: number;
 }
 
 /* ─── P1: Warehouse Management ─── */
@@ -429,8 +478,8 @@ export function useWarehouses() {
     return useQuery<Warehouse[]>({
         queryKey: ['warehouses'],
         queryFn: async () => {
-            const response = await api.get('/warehouses');
-            return response.data.data;
+            const response = await apiClient.get('/warehouses');
+            return response.data;
         }
     });
 }
@@ -440,8 +489,8 @@ export function useWarehouseInventory(id: string | number | null) {
         queryKey: ['warehouses', id, 'inventory'],
         queryFn: async () => {
             if (!id) return null;
-            const response = await api.get(`/warehouses/${id}/inventory`);
-            return response.data.data;
+            const response = await apiClient.get(`/warehouses/${id}/inventory`);
+            return response.data;
         },
         enabled: !!id
     });
@@ -451,8 +500,8 @@ export function useCreateWarehouse() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: Record<string, unknown>) => {
-            const response = await api.post('/warehouses', data);
-            return response.data.data;
+            const response = await apiClient.post('/warehouses', data);
+            return response.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['warehouses'] });
@@ -465,8 +514,8 @@ export function useOpsAnalytics() {
     return useQuery({
         queryKey: ['analytics', 'ops'],
         queryFn: async () => {
-            const response = await api.get('/analytics/ops');
-            return response.data.data;
+            const response = await apiClient.get('/analytics/ops');
+            return response.data;
         }
     });
 }
@@ -475,8 +524,8 @@ export function useCustomerAnalytics() {
     return useQuery({
         queryKey: ['analytics', 'customer'],
         queryFn: async () => {
-            const response = await api.get('/analytics/customer');
-            return response.data.data;
+            const response = await apiClient.get('/analytics/customer');
+            return response.data;
         }
     });
 }
@@ -485,8 +534,8 @@ export function usePartnerAnalytics() {
     return useQuery({
         queryKey: ['analytics', 'partner'],
         queryFn: async () => {
-            const response = await api.get('/analytics/partner');
-            return response.data.data;
+            const response = await apiClient.get('/analytics/partner');
+            return response.data;
         }
     });
 }
@@ -496,8 +545,8 @@ export function useFleets() {
     return useQuery({
         queryKey: ['fleets'],
         queryFn: async () => {
-            const response = await api.get('/fleets');
-            return response.data.data;
+            const response = await apiClient.get('/fleets');
+            return response.data;
         }
     });
 }
@@ -506,8 +555,8 @@ export function useCreateFleet() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: Record<string, unknown>) => {
-            const response = await api.post('/fleets', data);
-            return response.data.data;
+            const response = await apiClient.post('/fleets', data);
+            return response.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['fleets'] });
@@ -520,8 +569,8 @@ export function useFleetVehicles(fleetId: string | number | null) {
         queryKey: ['fleets', fleetId, 'vehicles'],
         queryFn: async () => {
             if (!fleetId) return null;
-            const response = await api.get(`/fleets/${fleetId}/vehicles`);
-            return response.data.data;
+            const response = await apiClient.get(`/fleets/${fleetId}/vehicles`);
+            return response.data;
         },
         enabled: !!fleetId
     });
@@ -531,8 +580,8 @@ export function useAddVehicle() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ fleetId, data }: { fleetId: string | number, data: Record<string, unknown> }) => {
-            const response = await api.post(`/fleets/${fleetId}/vehicles`, data);
-            return response.data.data;
+            const response = await apiClient.post(`/fleets/${fleetId}/vehicles`, data);
+            return response.data;
         },
         onSuccess: (_, v) => {
             queryClient.invalidateQueries({ queryKey: ['fleets', v.fleetId.toString(), 'vehicles'] });
@@ -544,8 +593,18 @@ export function useDrivers() {
     return useQuery({
         queryKey: ['drivers'],
         queryFn: async () => {
-            const response = await api.get('/drivers');
-            return response.data.data;
+            const response = await apiClient.get('/drivers');
+            return response.data;
+        }
+    });
+}
+
+export function useStats() {
+    return useQuery({
+        queryKey: ['stats'],
+        queryFn: async () => {
+            const response = await apiClient.get('/stats');
+            return response.data;
         }
     });
 }

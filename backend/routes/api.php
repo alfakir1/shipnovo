@@ -18,6 +18,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::post('/kyc/upload', [AuthController::class, 'uploadKyc'])->middleware('auth:sanctum');
     Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 });
 
@@ -69,8 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tickets/{id}/comments', [ShipmentController::class, 'addTicketComment']);
 
     // Billing (P0/P1.5)
-    Route::get('/shipments/{id}/invoice', [ShipmentController::class, 'getInvoice']);
-    Route::post('/shipments/{id}/invoice', [ShipmentController::class, 'generateInvoice']);
+    Route::get('/shipments/{shipment}/invoice', [ShipmentController::class, 'getInvoice']);
+    Route::post('/shipments/{shipment}/invoice', [ShipmentController::class, 'generateInvoice']);
     Route::post('/payments/webhook', [PaymentController::class, 'webhook'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
     // Warehouse Management (P1)

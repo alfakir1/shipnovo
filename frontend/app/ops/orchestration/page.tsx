@@ -11,14 +11,14 @@ import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function OrchestrationPage() {
     const { t } = useI18n();
-    const { data: shipmentsData, isLoading: loadingS } = useShipments({ status: 'pending' });
+    const { data: shipmentsData, isLoading: loadingS } = useShipments({ status: 'rfq' });
     const { data: partners } = usePartners();
     const [selected, setSelected] = useState<Shipment | null>(null);
     const assignPartner = useAssignPartner();
 
-    const shipments = shipmentsData?.data?.data ?? shipmentsData ?? [];
-    const carriers = partners?.filter((p: { type: string;[key: string]: unknown }) => p.type === 'carrier') ?? [];
-    const customs = partners?.filter((p: { type: string;[key: string]: unknown }) => p.type === 'customs') ?? [];
+    const shipments = shipmentsData?.data ?? [];
+    const carriers = partners?.filter((p: { role_type: string;[key: string]: unknown }) => p.role_type === 'carrier') ?? [];
+    const customs = partners?.filter((p: { role_type: string;[key: string]: unknown }) => p.role_type === 'customs') ?? [];
 
     return (
         <div className="space-y-8 pb-12">
@@ -104,7 +104,7 @@ export default function OrchestrationPage() {
                                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('partner.dashboard.activeAssignments')}</p>
                                     </div>
                                     <div className="space-y-3">
-                                        {carriers.length > 0 ? carriers.map((p: { id: number; company_name: string; type: string }) => (
+                                        {carriers.length > 0 ? carriers.map((p: { id: number; company_name: string; role_type: string }) => (
                                             <div key={p.id} className="p-4 bg-muted/30 rounded-xl border border-border hover:border-brand-navy-200 transition-colors group">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div className="h-9 w-9 rounded-lg flex items-center justify-center text-sm font-black text-white"
@@ -119,7 +119,7 @@ export default function OrchestrationPage() {
                                                 <Button size="sm" variant="default" className="w-full text-xs"
                                                     onClick={() => assignPartner.mutate({ shipmentId: selected.id, partnerId: p.id, legType: 'freight' })}
                                                     disabled={assignPartner.isPending}>
-                                                    <Plus className="me-1.5 h-3.5 w-3.5" /> {t('ops.orchestration.assignFreight')}
+                                                    {assignPartner.isPending ? t('common.loading') : <><Plus className="me-1.5 h-3.5 w-3.5" />{t('ops.orchestration.assignFreight')}</>}
                                                 </Button>
                                             </div>
                                         )) : <p className="text-center py-6 text-xs text-muted-foreground italic border border-dashed rounded-xl">{t('common.loading')}</p>}
@@ -133,7 +133,7 @@ export default function OrchestrationPage() {
                                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('status.customs')}</p>
                                     </div>
                                     <div className="space-y-3">
-                                        {customs.length > 0 ? customs.map((p: { id: number; company_name: string; type: string }) => (
+                                        {customs.length > 0 ? customs.map((p: { id: number; company_name: string; role_type: string }) => (
                                             <div key={p.id} className="p-4 bg-muted/30 rounded-xl border border-border hover:border-brand-blue-300 transition-colors group">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div className="h-9 w-9 rounded-lg flex items-center justify-center text-sm font-black text-white"
@@ -148,7 +148,7 @@ export default function OrchestrationPage() {
                                                 <Button size="sm" variant="secondary" className="w-full text-xs border border-brand-blue-100"
                                                     onClick={() => assignPartner.mutate({ shipmentId: selected.id, partnerId: p.id, legType: 'customs' })}
                                                     disabled={assignPartner.isPending}>
-                                                    {t('ops.orchestration.authorizeCustoms')}
+                                                    {assignPartner.isPending ? t('common.loading') : t('ops.orchestration.authorizeCustoms')}
                                                 </Button>
                                             </div>
                                         )) : <p className="text-center py-6 text-xs text-muted-foreground italic border border-dashed rounded-xl">{t('common.loading')}</p>}
