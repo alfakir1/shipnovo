@@ -6,6 +6,9 @@ use App\Models\Shipment;
 use App\Models\ReturnRequest;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\ReturnRequestedNotification;
 
 class ReturnController extends ApiController
 {
@@ -37,6 +40,19 @@ class ReturnController extends ApiController
             'reason' => $request->reason,
             'status' => 'pending',
         ]);
+
+        // Notify Admin / Ops
+        $admins = User::whereIn('role', ['admin', 'ops'])->get();
+        Notification::send($admins, new ReturnRequestedNotification($shipment, $request->reason, $request->user()));
+
+        // Notify Partner if assigned
+        $partners = User::whereHas('partner', function ($q) use ($shipment) {
+            $q->whereHas('assignments', function ($aq) use ($shipment) {
+                $aq->where('shipment_id', $shipment->id);
+            });
+        })->get();
+
+        Notification::send($partners, new ReturnRequestedNotification($shipment, $request->reason, $request->user()));
 
         return ApiResponse::created($return);
     }

@@ -22,8 +22,8 @@ export default function CustomerDashboard() {
     const { t } = useI18n();
     const [isUploadingKyc, setIsUploadingKyc] = useState(false);
 
-    const shipments = shipmentsData?.data?.data ?? [];
-    const total = shipmentsData?.data?.total ?? 0;
+    const shipments = Array.isArray(shipmentsData) ? shipmentsData : ((shipmentsData as any)?.data ?? []);
+    const total = Array.isArray(shipmentsData) ? shipmentsData.length : ((shipmentsData as any)?.total ?? 0);
 
     const needsKyc = user?.role === 'customer' && user?.kyc_status !== 'completed';
 
@@ -48,7 +48,7 @@ export default function CustomerDashboard() {
                         <h1 className="text-2xl font-black tracking-tight text-foreground">
                             {t('common.welcome')}, {user?.name?.split(' ')[0]} 👋
                         </h1>
-                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest border-brand-orange-200 text-brand-orange-600 bg-brand-orange-50/50">
+                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest border-orange-200 text-orange-600 bg-orange-50/50">
                             Demo Mode
                         </Badge>
                     </div>
@@ -64,19 +64,19 @@ export default function CustomerDashboard() {
             {/* KYC / Profile Completion Banner */}
             {needsKyc && showKycBanner && (
                 <div className={`border-2 rounded-xl p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in slide-in-from-top-2 transition-colors ${user?.kyc_status === 'pending'
-                    ? "bg-brand-orange-50 border-brand-orange-200"
-                    : "bg-blue-50 border-blue-100"
+                    ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-500/30"
+                    : "bg-brand-blue-50 dark:bg-brand-blue-950/20 border-brand-blue-100 dark:border-brand-blue-500/30"
                     }`}>
                     <div className="flex gap-4 items-start md:items-center">
-                        <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center mt-1 md:mt-0 ${user?.kyc_status === 'pending' ? "bg-brand-orange-100 text-brand-orange-600" : "bg-blue-100 text-blue-600"
+                        <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center mt-1 md:mt-0 ${user?.kyc_status === 'pending' ? "bg-orange-100 dark:bg-orange-900/40 text-orange-600" : "bg-brand-blue-100 dark:bg-brand-blue-900/40 text-brand-blue-600"
                             }`}>
                             <AlertCircle className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className={`font-bold ${user?.kyc_status === 'pending' ? "text-brand-orange-950" : "text-blue-950"}`}>
+                            <p className={`font-bold ${user?.kyc_status === 'pending' ? "text-orange-900 dark:text-orange-50" : "text-brand-blue-900 dark:text-brand-blue-50"}`}>
                                 {user?.kyc_status === 'pending' ? "Action Required: Complete Your Profile" : "Profile Verification Pending"}
                             </p>
-                            <p className={`text-sm mt-1 ${user?.kyc_status === 'pending' ? "text-brand-orange-800" : "text-blue-800"}`}>
+                            <p className={`text-sm mt-1 ${user?.kyc_status === 'pending' ? "text-orange-800 dark:text-orange-200" : "text-brand-blue-800 dark:text-brand-blue-200"}`}>
                                 {user?.kyc_status === 'pending'
                                     ? "To start shipping and accepting quotes, please upload your company registration and KYC documents."
                                     : "We have received your documents. Our ops team is currently reviewing your registration details."}
@@ -90,7 +90,7 @@ export default function CustomerDashboard() {
                                 Upload Documents (Simulated)
                             </Button>
                         ) : (
-                            <Badge variant="outline" className="bg-white/50 border-blue-200 text-blue-700 font-bold px-3 py-1">
+                            <Badge variant="outline" className="bg-white/50 dark:bg-white/10 border-brand-blue-200 dark:border-brand-blue-500/30 text-brand-blue-700 dark:text-brand-blue-300 font-bold px-3 py-1">
                                 Pending Approval
                             </Badge>
                         )}
@@ -167,8 +167,7 @@ export default function CustomerDashboard() {
                         {shipments.slice(0, 5).map((s: Shipment) => (
                             <Link key={s.id} href={`/customer/shipments/${s.id}`}
                                 className="flex items-center gap-4 px-6 py-4 hover:bg-muted/40 transition-colors group">
-                                <div className="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform"
-                                    style={{ backgroundColor: 'var(--brand-navy-50)', color: 'var(--brand-navy-900)' }}>
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-muted text-foreground group-hover:scale-105 transition-transform">
                                     <Package className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">

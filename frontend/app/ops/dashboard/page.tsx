@@ -16,11 +16,11 @@ export default function OpsDashboard() {
     const { data: partnersData, isLoading: loadingP } = usePartners();
     const { data: auditLogs, isLoading: loadingAudit } = useAuditLogs();
 
-    const shipments = shipmentsData?.data?.data ?? [];
-    const partners = partnersData ?? [];
+    const shipments = Array.isArray(shipmentsData) ? shipmentsData : ((shipmentsData as any)?.data ?? []);
+    const partners = Array.isArray(partnersData) ? partnersData : ((partnersData as any)?.data ?? []);
 
     // Stats from analytics
-    const stats = analytics?.overview ?? {};
+    const stats = (analytics as any)?.overview ?? {};
 
     return (
         <div className="space-y-8 pb-12">
@@ -38,19 +38,19 @@ export default function OpsDashboard() {
                     accent
                 />
                 <KpiCard
-                    title="Monthly Revenue"
+                    title={t('dashboard.stats.monthlyRevenue')}
                     value={loadingA ? '—' : `$${stats.monthly_revenue?.toLocaleString()}`}
                     icon={<DollarSign className="h-5 w-5" />}
                     trend={{ value: 12, label: "vs last month", isPositive: true }}
                 />
                 <KpiCard
-                    title="Active Shipments"
+                    title={t('dashboard.stats.active')}
                     value={loadingA ? '—' : stats.active_shipments}
                     icon={<Activity className="h-5 w-5" />}
                     trend={{ value: stats.active_shipments, label: t('dashboard.stats.active'), isPositive: true }}
                 />
                 <KpiCard
-                    title="Pending RFQs"
+                    title={t('dashboard.stats.pendingRfqs')}
                     value={loadingA ? '—' : stats.pending_rfqs}
                     icon={<Clock className="h-5 w-5" />}
                 />
@@ -59,8 +59,7 @@ export default function OpsDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pending Queue */}
                 <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-border"
-                        style={{ backgroundColor: 'var(--brand-navy-50)' }}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
                         <div className="flex items-center gap-2">
                             <AlertTriangle className="h-4 w-4" style={{ color: 'var(--brand-orange-500)' }} />
                             <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('ops.dashboard.pendingQueue')}</h2>
@@ -85,8 +84,7 @@ export default function OpsDashboard() {
                             {shipments.filter((s: Shipment) => s.status === 'pending').slice(0, 6).map((s: Shipment) => (
                                 <Link key={s.id} href={`/ops/shipments/${s.id}`}
                                     className="flex items-center gap-4 px-6 py-3.5 hover:bg-muted/40 transition-colors group">
-                                    <div className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                                        style={{ backgroundColor: 'var(--brand-navy-50)', color: 'var(--brand-navy-900)' }}>
+                                    <div className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-accent/10 text-accent">
                                         <Package className="h-4 w-4" />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -105,7 +103,7 @@ export default function OpsDashboard() {
 
                 {/* Partners */}
                 <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-border" style={{ backgroundColor: 'var(--brand-navy-50)' }}>
+                    <div className="px-6 py-4 border-b border-border bg-muted/30">
                         <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('ops.dashboard.activePartners')}</h2>
                     </div>
                     {loadingP ? (
@@ -140,10 +138,9 @@ export default function OpsDashboard() {
 
                 {/* Audit Trail */}
                 <div className="lg:col-span-3 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-border"
-                        style={{ backgroundColor: 'var(--brand-navy-50)' }}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
                         <div className="flex items-center gap-2">
-                            <ShieldCheck className="h-4 w-4" style={{ color: 'var(--brand-navy-900)' }} />
+                            <ShieldCheck className="h-4 w-4 text-accent" />
                             <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">System Audit Trail</h2>
                         </div>
                     </div>

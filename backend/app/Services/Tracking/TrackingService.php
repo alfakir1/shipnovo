@@ -21,7 +21,7 @@ class TrackingService
      */
     public function addEvent(Shipment $shipment, array $data, $userId)
     {
-        return TrackingEvent::create([
+        $event = TrackingEvent::create([
             'shipment_id' => $shipment->id,
             'status_code' => $data['status_code'],
             'location' => $data['location'] ?? null,
@@ -29,5 +29,15 @@ class TrackingService
             'occurred_at' => $data['timestamp'] ?? now(),
             'created_by' => $userId,
         ]);
+
+        $adminsAndOps = \App\Models\User::whereIn('role', ['admin', 'ops'])->get();
+        \Illuminate\Support\Facades\Notification::send($adminsAndOps, new \App\Notifications\SystemNotification(
+            'New Tracking Event',
+            "Shipment {$shipment->tracking_number}: {$data['description']}",
+            'system_operation',
+            ['shipment_id' => $shipment->id]
+        ));
+
+        return $event;
     }
 }

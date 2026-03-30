@@ -11,14 +11,15 @@ import { Timeline } from "@/components/ui/timeline";
 import { useShipment, useShipmentTickets, useCreateTicket, useInvoices, useDocuments, useAuthorizePayment, useCapturePayment, useShipmentQuotes, useSelectQuote, ShipmentEvent, ShipmentDocument, Quote } from "@/hooks/useShipments";
 import { useAppConfig } from "@/hooks/useConfig";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CreditCard, RefreshCw, AlertTriangle, Star, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { ChatThread } from "@/components/chat/ChatThread";
+import { CreditCard, RefreshCw, AlertTriangle, Star, CheckCircle, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRateShipment, useShipmentRating, useCreateReturn } from "@/hooks/useShipments";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ShipmentDetailPage() {
     const { t } = useI18n();
-    const router = useRouter();
     const { id } = useParams() as { id: string };
     const { data, isLoading } = useShipment(id);
     const { data: configData } = useAppConfig();
@@ -44,8 +45,22 @@ export default function ShipmentDetailPage() {
 
     const [showRating, setShowRating] = useState(false);
     const [ratingVal, setRatingVal] = useState(0);
+    const [ratingComment, setRatingComment] = useState('');
+    const [ratingSuggestions, setRatingSuggestions] = useState('');
     const [ratingSubmitted, setRatingSubmitted] = useState(false);
     const [actionError, setActionError] = useState<string | null>(null);
+
+    const [returnReason, setReturnReason] = useState('');
+    const createReturn = useCreateReturn();
+
+    const rateShipment = useRateShipment();
+    const { data: existingRating } = useShipmentRating(id);
+
+    useEffect(() => {
+        if (shipment?.status === 'delivered' && !existingRating) {
+            setShowRating(true);
+        }
+    }, [shipment?.status, existingRating]);
 
     if (isLoading) return (
         <div className="space-y-6">
@@ -83,8 +98,7 @@ export default function ShipmentDetailPage() {
             <div className="bg-card rounded-xl border border-border shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: 'var(--brand-navy-50)', color: 'var(--brand-navy-900)' }}>
+                        <div className="h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-muted text-foreground">
                             <Package className="h-6 w-6" />
                         </div>
                         <div>
@@ -112,7 +126,7 @@ export default function ShipmentDetailPage() {
                             <Package className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="font-bold text-brand-orange-950">{t('shipments.rfqStatusTitle')}</p>
+                            <p className="font-bold text-brand-orange-900">{t('shipments.rfqStatusTitle')}</p>
                             <p className="text-xs text-brand-orange-800">{t('shipments.rfqStatusDesc')}</p>
                         </div>
                     </div>
@@ -123,24 +137,25 @@ export default function ShipmentDetailPage() {
             )}
             {/* Payment Banner */}
             {(shipment.status === 'offer_selected' || shipment.status === 'processing') && !shipment.payment && (
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-top-4 duration-500 delay-150">
+                <div className="bg-brand-navy-50 dark:bg-brand-navy-900/10 border-2 border-brand-navy-200 dark:border-brand-navy-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-top-4 duration-500 delay-150">
                     <div className="flex gap-4 items-center">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        <div className="h-10 w-10 rounded-full bg-brand-navy-100 dark:bg-brand-navy-900/40 flex items-center justify-center text-brand-navy-900 dark:text-brand-navy-300">
                             <CreditCard className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="font-bold text-blue-950">{t('billing.paymentRequired')}</p>
-                            <p className="text-xs text-blue-800">{t('billing.paymentRequiredDesc')}</p>
+                            <p className="font-bold text-brand-navy-900 dark:text-brand-navy-50">{t('billing.paymentRequired')}</p>
+                            <p className="text-xs text-brand-navy-800 dark:text-brand-navy-200">{t('billing.paymentRequiredDesc')}</p>
                         </div>
                     </div>
                     <Button
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                        className="bg-brand-navy-900 dark:bg-brand-navy-700 hover:opacity-90 text-white font-bold"
                         onClick={async () => {
                             setActionError(null);
                             try {
                                 await authorizePayment.mutateAsync({ shipmentId: id, amount: shipment.customer_price || 0 });
-                            } catch (err: any) {
-                                setActionError(err.message || t('common.errorOccurred'));
+                            } catch (err: unknown) {
+                                const e = err as { message?: string };
+                                setActionError(e.message || t('common.errorOccurred'));
                             }
                         }}
                         disabled={authorizePayment.isPending}
@@ -151,18 +166,18 @@ export default function ShipmentDetailPage() {
             )}
 
             {(shipment.status === 'at_destination' || shipment.status === 'delivered') && invoices.length > 0 && invoices.some((i: { status: string }) => i.status !== 'captured' && i.status !== 'paid') && (
-                <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-right duration-300">
+                <div className="bg-brand-blue-50 dark:bg-brand-blue-900/10 border-2 border-brand-blue-200 dark:border-brand-blue-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-right duration-300">
                     <div className="flex gap-4 items-center">
-                        <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                        <div className="h-10 w-10 rounded-full bg-brand-blue-100 dark:bg-brand-blue-900/40 flex items-center justify-center text-brand-blue-600 dark:text-brand-blue-300">
                             <CheckCircle className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="font-bold text-green-950">{t('shipments.confirmDelivery')}</p>
-                            <p className="text-xs text-green-800">{t('shipments.confirmDeliveryDesc')}</p>
+                            <p className="font-bold text-brand-blue-900 dark:text-brand-blue-50">{t('shipments.confirmDelivery')}</p>
+                            <p className="text-xs text-brand-blue-800 dark:text-brand-blue-200">{t('shipments.confirmDeliveryDesc')}</p>
                         </div>
                     </div>
                     <Button
-                        className="bg-green-600 hover:bg-green-700 text-white font-bold whitespace-nowrap"
+                        className="bg-brand-blue-600 dark:bg-brand-blue-700 hover:opacity-90 text-white font-bold whitespace-nowrap"
                         onClick={async () => {
                             await capturePayment.mutateAsync({ shipmentId: id });
                             setShowRating(true);
@@ -175,24 +190,96 @@ export default function ShipmentDetailPage() {
             )}
 
             {/* Rating Modal/Form */}
-            {showRating && !ratingSubmitted && (
-                <div className="bg-card border-2 border-accent rounded-xl p-6 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-                    <h3 className="text-lg font-black text-foreground mb-2">{t('shipments.rateExperience')}</h3>
-                    <p className="text-sm text-muted-foreground mb-6">{t('shipments.rateExperienceDesc')}</p>
-                    <div className="flex gap-2 mb-6">
-                        {[1, 2, 3, 4, 5].map(star => (
-                            <button key={star} onClick={() => setRatingVal(star)} className={`p-2 rounded-full transition-transform hover:scale-110 ${ratingVal >= star ? 'text-brand-orange-500' : 'text-muted-foreground/30'}`}>
-                                <Star className={ratingVal >= star ? "fill-brand-orange-500" : ""} size={32} />
-                            </button>
-                        ))}
+            {showRating && !ratingSubmitted && !existingRating && (
+                <div className="bg-card border-2 border-brand-orange-200 rounded-xl p-8 relative overflow-hidden shadow-lg animate-in zoom-in-95 duration-500">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-orange-100/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+                    
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="h-10 w-10 rounded-full bg-brand-orange-100 flex items-center justify-center text-brand-orange-600">
+                            <Star className="h-5 w-5 fill-brand-orange-500" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-foreground">{t('shipments.rateExperience')}</h3>
+                            <p className="text-sm text-muted-foreground">{t('shipments.rateExperienceDesc')}</p>
+                        </div>
                     </div>
-                    <Button disabled={!ratingVal} onClick={() => setRatingSubmitted(true)} variant="accent">{t('shipments.submitReview')}</Button>
+
+                    <div className="space-y-6">
+                        <div className="flex gap-3">
+                            {[1, 2, 3, 4, 5].map(star => (
+                                <button key={star} onClick={() => setRatingVal(star)} className={`p-1 transition-all hover:scale-125 ${ratingVal >= star ? 'text-brand-orange-500' : 'text-muted-foreground/20'}`}>
+                                    <Star className={ratingVal >= star ? "fill-brand-orange-500" : ""} size={40} />
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                    <MessageSquare className="h-3 w-3" /> {t('common.summary')}
+                                </label>
+                                <Textarea 
+                                    placeholder={t('shipments.rateExperienceDesc')} 
+                                    value={ratingComment} 
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRatingComment(e.target.value)}
+                                    className="bg-muted/30 border-border focus:ring-brand-orange-500/20 min-h-[80px]"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                    <RefreshCw className="h-3 w-3" /> {t('shipments.suggestions')}
+                                </label>
+                                <Textarea 
+                                    placeholder={t('shipments.suggestionsPlaceholder')} 
+                                    value={ratingSuggestions} 
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRatingSuggestions(e.target.value)}
+                                    className="bg-muted/30 border-border focus:ring-brand-orange-500/20 min-h-[100px]"
+                                />
+                            </div>
+                        </div>
+
+                        <Button 
+                            disabled={!ratingVal || rateShipment.isPending} 
+                            onClick={async () => {
+                                try {
+                                    setActionError(null);
+                                    await rateShipment.mutateAsync({
+                                        shipmentId: id,
+                                        data: {
+                                            score: ratingVal,
+                                            comment: ratingComment,
+                                            suggestions: ratingSuggestions
+                                        }
+                                    });
+                                    setRatingSubmitted(true);
+                                } catch (err: any) {
+                                    const msg = err?.response?.data?.message || err?.message || 'Failed to submit rating';
+                                    setActionError(msg);
+                                    console.error('Rating Error:', err?.response?.data || err);
+                                }
+                            }} 
+                            variant="accent" 
+                            className="w-full sm:w-auto h-12 px-8 text-base font-bold shadow-md shadow-brand-orange-500/20"
+                        >
+                            {rateShipment.isPending ? t('common.loading') : t('shipments.submitReview')}
+                        </Button>
+                    </div>
                 </div>
             )}
-            {ratingSubmitted && (
-                <div className="bg-brand-orange-50/50 border border-brand-orange-100 rounded-xl p-4 text-center">
-                    <p className="text-sm font-bold text-brand-orange-950">{t('shipments.ratingThanks')}</p>
+            {(ratingSubmitted || existingRating) && shipment.status === 'delivered' && (
+                <div className="bg-brand-orange-50/50 border border-brand-orange-100 rounded-xl p-6 text-center animate-in fade-in duration-700">
+                    <div className="h-12 w-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-brand-orange-100">
+                        <CheckCircle className="h-6 w-6 text-brand-orange-500" />
+                    </div>
+                    <p className="text-base font-bold text-brand-orange-900">{t('shipments.ratingThanks')}</p>
+                    {existingRating && (
+                        <div className="mt-4 flex justify-center gap-1">
+                            {[1, 2, 3, 4, 5].map(s => (
+                                <Star key={s} size={16} className={existingRating.score >= s ? "fill-brand-orange-500 text-brand-orange-500" : "text-brand-orange-200"} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -201,7 +288,7 @@ export default function ShipmentDetailPage() {
                 <TabsList className="bg-card border border-border h-11 p-1">
                     <TabsTrigger value="overview">{t('shipments.overview')}</TabsTrigger>
                     <TabsTrigger value="tracking">{t('shipments.tracking')}</TabsTrigger>
-                    <TabsTrigger value="quotes">{t('common.quotes')} {quotes.length > 0 && <span className="ms-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-600">{quotes.length}</span>}</TabsTrigger>
+                    <TabsTrigger value="quotes">{t('common.quotes')} {quotes.length > 0 && <span className="ms-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-brand-orange-500/20 text-brand-orange-600">{quotes.length}</span>}</TabsTrigger>
                     <TabsTrigger value="partners">{t('common.partners')}</TabsTrigger>
                     <TabsTrigger value="documents">{t('shipments.documents')} {docs.length > 0 && <span className="ms-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-accent/20 text-accent">{docs.length}</span>}</TabsTrigger>
                     <TabsTrigger value="billing">{t('shipments.billing')}</TabsTrigger>
@@ -336,8 +423,9 @@ export default function ShipmentDetailPage() {
                                                         setActionError(null);
                                                         try {
                                                             await selectQuote.mutateAsync({ shipmentId: id, quoteId: q.id });
-                                                        } catch (err: any) {
-                                                            setActionError(err.message || t('common.errorOccurred'));
+                                                        } catch (err: unknown) {
+                                                            const e = err as { message?: string };
+                                                            setActionError(e.message || t('common.errorOccurred'));
                                                         }
                                                     }}
                                                 >
@@ -362,7 +450,7 @@ export default function ShipmentDetailPage() {
                         </div>
                         {(shipment?.assignments?.length ?? 0) > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6">
-                                {shipment.assignments?.map((asn: any) => (
+                                {shipment.assignments?.map((asn: { id: number; partner?: { company_name: string }; leg_type: string; status: string }) => (
                                     <div key={asn.id} className="p-5 bg-muted/30 rounded-xl border border-border">
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="h-10 w-10 rounded-xl flex items-center justify-center text-sm font-black text-white"
@@ -441,85 +529,62 @@ export default function ShipmentDetailPage() {
                     </div>
                 </TabsContent>
 
-                {/* Tickets tab */}
+                {/* Tickets tab (Now Chat) */}
                 <TabsContent value="tickets">
-                    <div className="space-y-6">
-                        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
-                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">{t('shipments.openTicket') || 'Open a Ticket'}</h3>
-                            <div className="space-y-3">
-                                <input
-                                    value={ticketSubject}
-                                    onChange={e => setTicketSubject(e.target.value)}
-                                    placeholder={t('shipments.ticketSubject') || 'Subject'}
-                                    className="w-full h-10 px-3 rounded-lg border border-border bg-muted/30 text-sm focus:outline-none focus:ring-2 transition-all"
-                                />
-                                <textarea
-                                    value={ticketBody}
-                                    onChange={e => setTicketBody(e.target.value)}
-                                    placeholder={t('shipments.ticketBody') || 'Describe the issue...'}
-                                    rows={3}
-                                    className="w-full px-3 py-2.5 rounded-lg border border-border bg-muted/30 text-sm focus:outline-none focus:ring-2 transition-all resize-none"
-                                />
-                                <Button
-                                    variant="accent"
-                                    disabled={!ticketSubject || createTicket.isPending}
-                                    onClick={() => {
-                                        if (!ticketSubject || !ticketBody) return;
-                                        createTicket.mutate({
-                                            shipmentId: id,
-                                            data: {
-                                                subject: ticketSubject,
-                                                description: ticketBody
-                                            }
-                                        }, {
-                                            onSuccess: () => {
-                                                setTicketSubject('');
-                                                setTicketBody('');
-                                                refetchTickets();
-                                            }
-                                        });
-                                    }}
-                                >{createTicket.isPending ? t('common.loading') : (t('shipments.submitTicket') || 'Submit Ticket')}</Button>
-                            </div>
-                        </div>
-                        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                            <div className="p-5 border-b border-border">
-                                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('shipments.tickets')}</h3>
-                            </div>
-                            {tickets.length > 0 ? (
-                                <div className="divide-y divide-border">
-                                    {tickets.map((tk: { id: number; subject: string; status: string; created_at: string }) => (
-                                        <div key={tk.id} className="flex items-center justify-between px-6 py-4">
-                                            <div>
-                                                <p className="text-sm font-bold text-foreground">{tk.subject}</p>
-                                                <p className="text-xs text-muted-foreground">{new Date(tk.created_at).toLocaleDateString()}</p>
-                                            </div>
-                                            <Badge variant={tk.status === 'resolved' ? 'success' : 'warning'} className="capitalize">{tk.status}</Badge>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <EmptyState title={t('shipments.noTickets') || 'No tickets yet'} description={t('shipments.noTicketsDesc') || 'Open a ticket above for support'} className="py-12" />
-                            )}
-                        </div>
-                    </div>
+                    <ChatThread shipmentId={id} />
                 </TabsContent>
 
                 {/* Returns */}
                 <TabsContent value="returns">
-                    <div className="bg-card rounded-xl border border-border shadow-sm p-8 text-center space-y-4">
-                        <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground">
-                            <RefreshCw className="h-8 w-8" />
+                    <div className="bg-card rounded-xl border border-border shadow-sm p-8 max-w-2xl mx-auto space-y-6 animate-in slide-in-from-bottom-4">
+                        <div className="text-center space-y-4">
+                            <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto text-destructive border border-destructive/20 shadow-sm">
+                                <RefreshCw className="h-8 w-8" />
+                            </div>
+                            <div>
+                                <p className="font-bold text-foreground text-xl tracking-tight">{t('shipments.returnPolicy')}</p>
+                                <p className="text-sm text-muted-foreground mt-2 font-medium">
+                                    {t('shipments.returnPolicyDesc')}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-bold text-foreground text-lg">{t('shipments.returnPolicy')}</p>
-                            <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-2">
-                                {t('shipments.returnPolicyDesc')}
-                            </p>
-                        </div>
-                        <Button variant="outline" disabled={shipment.status !== 'delivered'}>
-                            {t('shipments.createReturn')}
-                        </Button>
+
+                        {shipment.has_return_request ? (
+                            <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-8 text-center animate-in zoom-in-95">
+                                <CheckCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
+                                <p className="font-black text-destructive text-lg">{t('shipments.returnRequested')}</p>
+                                <p className="text-sm text-destructive/80 mt-1 font-medium">{t('shipments.returnPolicyDesc')}</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4 pt-6 border-t border-border/50">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
+                                        <MessageSquare className="h-3 w-3" /> {t('common.description')}
+                                    </label>
+                                    <Textarea 
+                                        placeholder={t('shipments.suggestionsPlaceholder')}
+                                        value={returnReason}
+                                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReturnReason(e.target.value)}
+                                        className="min-h-[120px] bg-muted/50 border-border"
+                                    />
+                                </div>
+                                <Button 
+                                    variant="destructive"
+                                    className="w-full h-12 text-base font-bold shadow-md shadow-destructive/20"
+                                    disabled={!returnReason || createReturn.isPending || shipment.status !== 'delivered'}
+                                    onClick={async () => {
+                                        try {
+                                            setActionError(null);
+                                            await createReturn.mutateAsync({ shipmentId: id, reason: returnReason });
+                                        } catch (err: any) {
+                                            setActionError(err?.response?.data?.message || err?.message || 'Failed to submit return request');
+                                        }
+                                    }}
+                                >
+                                    {createReturn.isPending ? t('common.loading') : t('shipments.createReturn')}
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </TabsContent>
             </Tabs>

@@ -113,7 +113,7 @@ class PaymentService
         });
     }
 
-    public function refund(Payment $payment, float $amount = null)
+    public function refund(Payment $payment, ?float $amount = null)
     {
         $refundAmount = $amount ?? $payment->amount;
 

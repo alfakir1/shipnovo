@@ -1,7 +1,7 @@
 'use client';
 
 import { usePartnerJobs, Shipment } from "@/hooks/useShipments";
-import { Truck, ArrowRight, MapPin, Clock, CheckCircle, Package } from "lucide-react";
+import { Truck, ArrowRight, MapPin, Clock, CheckCircle, Package, Star } from "lucide-react";
 import Link from "next/link";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,29 +11,35 @@ import { useI18n } from "@/components/providers/I18nProvider";
 export default function PartnerJobsPage() {
     const { t } = useI18n();
     const { data, isLoading } = usePartnerJobs();
-    // Backend returns paginated Shipment list for partners
-    const jobs: Shipment[] = data?.data ?? data ?? [];
+    const jobs: Shipment[] = (data as any) ?? [];
 
     const active = jobs.filter((j: Shipment) => !['delivered', 'closed', 'cancelled'].includes(j.status));
     const completed = jobs.filter((j: Shipment) => ['delivered', 'closed'].includes(j.status));
 
     const statusIcon = (status: string) => {
-        if (status === 'delivered' || status === 'closed') return <CheckCircle className="h-4 w-4" style={{ color: 'var(--brand-blue-500)' }} />;
-        if (status === 'transit') return <Truck className="h-4 w-4" style={{ color: 'var(--brand-orange-500)' }} />;
+        if (status === 'delivered' || status === 'closed') return <CheckCircle className="h-4 w-4 text-link" />;
+        if (status === 'transit') return <Truck className="h-4 w-4 text-accent" />;
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     };
 
     const JobCard = ({ job }: { job: Shipment }) => (
-        <div className="bg-card rounded-xl border border-border shadow-sm hover:shadow-md hover:border-brand-navy-200 transition-all group">
+        <div className="bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all group">
             <div className="p-5">
                 <div className="flex items-start gap-4 mb-4">
-                    <div className="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: 'var(--brand-navy-50)', color: 'var(--brand-navy-900)' }}>
+                    <div className="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-muted text-foreground">
                         <Package className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-black text-foreground">{job.tracking_number}</p>
-                        <p className="text-xs font-semibold capitalize" style={{ color: 'var(--brand-orange-500)' }}>
+                        <div className="flex items-center justify-between gap-2">
+                            <h3 className="font-bold text-foreground truncate">{job.tracking_number}</h3>
+                            {job.rating && (
+                                <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-brand-orange-50 text-brand-orange-600 text-[11px] font-black border border-brand-orange-100">
+                                    <Star className="h-3 w-3 fill-brand-orange-500" />
+                                    {job.rating.score}
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-xs font-semibold capitalize text-accent">
                             {job.mode} · {job.cargo_type}
                         </p>
                     </div>
@@ -54,10 +60,15 @@ export default function PartnerJobsPage() {
                         <Badge variant={statusVariant(job.status)} className="capitalize text-[10px]">
                             {t(`status.${job.status}`) || job.status?.replace('_', ' ')}
                         </Badge>
+                        {job.has_return_request && (
+                            <Badge variant="destructive" className="animate-pulse bg-red-600 text-[9px] py-0 px-1 border-0 font-bold uppercase">
+                                {t('shipments.returnRequested')}
+                            </Badge>
+                        )}
                     </div>
                     <Link href={`/partner/jobs/${job.id}`}
-                        className="text-xs font-bold flex items-center gap-1 hover:underline"
-                        style={{ color: 'var(--brand-orange-500)' }}>
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors text-accent"
+                    >
                         {t('shipments.details')} <ArrowRight className="h-3 w-3 rtl-flip" />
                     </Link>
                 </div>

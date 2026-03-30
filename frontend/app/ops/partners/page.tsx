@@ -78,7 +78,7 @@ export default function OpsPartnersPage() {
                                         <Button
                                             variant="secondary"
                                             size="sm"
-                                            className="h-8 bg-green-500 hover:bg-green-600 text-white"
+                                            className="h-8 bg-brand-blue-500 hover:bg-brand-blue-600 text-white"
                                             onClick={() => approvePartner.mutate({ id: p.id })}
                                             disabled={approvePartner.isPending}
                                         >
@@ -92,11 +92,11 @@ export default function OpsPartnersPage() {
                 </table>
             </div>
 
-            <div className="p-6 bg-brand-orange-50 border border-brand-orange-200 rounded-xl flex gap-4 items-start">
+            <div className="p-6 bg-brand-orange-50 dark:bg-brand-orange-900/10 border border-brand-orange-200 dark:border-brand-orange-500/30 rounded-xl flex gap-4 items-start">
                 <ShieldCheck className="h-6 w-6 text-brand-orange-600 mt-1" />
                 <div>
-                    <h3 className="text-sm font-bold text-brand-orange-900">Compliance Check</h3>
-                    <p className="text-xs text-brand-orange-800 mt-1 leading-relaxed">
+                    <h3 className="text-sm font-bold text-brand-orange-900 dark:text-brand-orange-50">Compliance Check</h3>
+                    <p className="text-xs text-brand-orange-800 dark:text-brand-orange-200 mt-1 leading-relaxed">
                         By approving a partner, you verify their legal documentation and allow them to submit quotes to customers.
                         Audit logs will record this action.
                     </p>

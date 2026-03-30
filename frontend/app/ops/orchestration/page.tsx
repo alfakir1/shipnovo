@@ -16,9 +16,9 @@ export default function OrchestrationPage() {
     const [selected, setSelected] = useState<Shipment | null>(null);
     const assignPartner = useAssignPartner();
 
-    const shipments = shipmentsData?.data ?? [];
-    const carriers = partners?.filter((p: { role_type: string;[key: string]: unknown }) => p.role_type === 'carrier') ?? [];
-    const customs = partners?.filter((p: { role_type: string;[key: string]: unknown }) => p.role_type === 'customs') ?? [];
+    const shipments = Array.isArray(shipmentsData) ? shipmentsData : ((shipmentsData as any)?.data ?? []);
+    const carriers = (Array.isArray(partners) ? partners : ((partners as any)?.data ?? [])).filter((p: any) => p.role_type === 'carrier');
+    const customs = (Array.isArray(partners) ? partners : ((partners as any)?.data ?? [])).filter((p: any) => p.role_type === 'customs');
 
     return (
         <div className="space-y-8 pb-12">
@@ -26,7 +26,7 @@ export default function OrchestrationPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-3">
-                        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--brand-navy-50)', color: 'var(--brand-navy-900)' }}>
+                        <div className="p-2 rounded-lg bg-muted text-foreground">
                             <Cpu className="h-6 w-6" />
                         </div>
                         {t('ops.orchestration.title')}
@@ -41,7 +41,7 @@ export default function OrchestrationPage() {
                     <div className="h-8 w-px bg-border" />
                     <div className="text-center">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t('ops.dashboard.activePartners')}</p>
-                        <p className="text-xl font-black" style={{ color: 'var(--brand-orange-500)' }}>{partners?.length ?? 0}</p>
+                        <p className="text-xl font-black text-accent">{partners?.length ?? 0}</p>
                     </div>
                 </div>
             </div>
@@ -58,9 +58,9 @@ export default function OrchestrationPage() {
                                         "w-full text-left p-4 rounded-xl border-2 transition-all",
                                         selected?.id === s.id
                                             ? "text-white shadow-lg border-transparent"
-                                            : "bg-card border-border hover:border-brand-navy-200 text-foreground"
+                                            : "bg-card border-border text-foreground"
                                     )}
-                                    style={selected?.id === s.id ? { backgroundColor: 'var(--brand-navy-900)', borderColor: 'var(--brand-navy-900)' } : {}}
+                                    style={selected?.id === s.id ? { backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-bg)' } : {}}
                                 >
                                     <div className="flex justify-between items-start mb-3">
                                         <span className="text-sm font-bold">{s.tracking_number}</span>
@@ -73,7 +73,7 @@ export default function OrchestrationPage() {
                                 </button>
                             )) : (
                                 <div className="bg-card rounded-xl border border-border h-48 flex flex-col items-center justify-center gap-3">
-                                    <CheckCircle2 className="h-8 w-8" style={{ color: 'var(--brand-blue-500)' }} />
+                                    <CheckCircle2 className="h-8 w-8 text-link" />
                                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('ops.orchestration.queueClear')}</p>
                                 </div>
                             )}
@@ -90,7 +90,7 @@ export default function OrchestrationPage() {
                                     <p className="text-sm text-muted-foreground mt-1">{t('ops.orchestration.subtitle')}</p>
                                 </div>
                                 <div className="p-4 rounded-xl text-white flex-shrink-0"
-                                    style={{ backgroundColor: 'var(--brand-navy-900)' }}>
+                                    style={{ backgroundColor: 'var(--sidebar-bg)' }}>
                                     <p className="text-[10px] font-bold uppercase tracking-wider opacity-70 mb-0.5">{t('common.margin')}</p>
                                     <p className="text-lg font-black">${((selected.internal_value ?? 0) * 0.15).toLocaleString()}</p>
                                 </div>
@@ -100,15 +100,15 @@ export default function OrchestrationPage() {
                                 {/* Carriers */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-4 px-1">
-                                        <Truck className="h-4 w-4" style={{ color: 'var(--brand-orange-500)' }} />
+                                        <Truck className="h-4 w-4 text-accent" />
                                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('partner.dashboard.activeAssignments')}</p>
                                     </div>
                                     <div className="space-y-3">
                                         {carriers.length > 0 ? carriers.map((p: { id: number; company_name: string; role_type: string }) => (
-                                            <div key={p.id} className="p-4 bg-muted/30 rounded-xl border border-border hover:border-brand-navy-200 transition-colors group">
+                                            <div key={p.id} className="p-4 bg-muted/30 rounded-xl border border-border transition-colors group">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div className="h-9 w-9 rounded-lg flex items-center justify-center text-sm font-black text-white"
-                                                        style={{ backgroundColor: 'var(--brand-navy-800)' }}>
+                                                        style={{ backgroundColor: 'var(--navy-800)' }}>
                                                         {p.company_name?.[0]}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
@@ -129,7 +129,7 @@ export default function OrchestrationPage() {
                                 {/* Customs */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-4 px-1">
-                                        <Shield className="h-4 w-4" style={{ color: 'var(--brand-blue-500)' }} />
+                                        <Shield className="h-4 w-4 text-link" />
                                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('status.customs')}</p>
                                     </div>
                                     <div className="space-y-3">
@@ -158,7 +158,7 @@ export default function OrchestrationPage() {
                         </div>
                     ) : (
                         <div className="h-full min-h-[420px] flex flex-col items-center justify-center bg-card rounded-xl border border-dashed border-border">
-                            <Search className="h-12 w-12 mb-4" style={{ color: 'var(--brand-navy-100)' }} />
+                            <Search className="h-12 w-12 mb-4 text-muted" />
                             <h3 className="text-base font-bold text-foreground">{t('ops.orchestration.selectShipment')}</h3>
                             <p className="text-sm text-muted-foreground mt-1 max-w-xs text-center">{t('ops.orchestration.selectShipmentDesc')}</p>
                         </div>

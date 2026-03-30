@@ -23,14 +23,14 @@ export function KpiCard({ title, value, icon, trend, className, accent = false }
                 className
             )}
         >
-            {/* subtle navy gradient corner */}
-            <div className="absolute -top-6 -end-6 h-16 w-16 rounded-full bg-brand-navy-50 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            {/* subtle accent corner (keeps dark mode readable) */}
+            <div className="absolute -top-6 -end-6 h-16 w-16 rounded-full bg-navy-50 dark:bg-accent/10 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
             <div className="relative z-10">
                 <div className="flex items-start justify-between mb-4">
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{title}</p>
                     {icon && (
-                        <div className="p-2.5 rounded-lg bg-brand-navy-50 text-brand-navy">
+                        <div className="p-2.5 rounded-lg bg-navy-50 dark:bg-accent/10 text-primary dark:text-accent">
                             {icon}
                         </div>
                     )}

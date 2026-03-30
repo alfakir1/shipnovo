@@ -50,11 +50,11 @@ class AuthController extends ApiController
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return ApiResponse::ok([
+        return ApiResponse::created([
             'token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
-        ], ['message' => 'Account created successfully'], 201);
+        ], ['message' => 'Account created successfully']);
     }
 
     public function logout(Request $request)

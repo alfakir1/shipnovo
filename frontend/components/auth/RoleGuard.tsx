@@ -2,42 +2,42 @@
 
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect } from 'react';
 import AppShell from "@/components/layout/AppShell";
 
 interface RoleGuardProps {
     children: React.ReactNode;
     allowedRoles: ('admin' | 'ops' | 'customer' | 'partner')[];
     redirectTo?: string;
+    /**
+     * When true (default), wraps authorized content in the shared AppShell.
+     * When false, only guards access and renders children directly.
+     */
+    withShell?: boolean;
 }
 
-export default function RoleGuard({ children, allowedRoles, redirectTo }: RoleGuardProps) {
+export default function RoleGuard({ children, allowedRoles, redirectTo, withShell = true }: RoleGuardProps) {
     const { user, loading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
-    const [authorized, setAuthorized] = useState(false);
+    const isAuthorized = !loading && user && allowedRoles.includes(user.role);
 
     useEffect(() => {
         if (!loading) {
             if (!user) {
-                // Not logged in, redirect to login with callback if needed
                 router.push(`/login?callback=${encodeURIComponent(pathname)}`);
             } else if (!allowedRoles.includes(user.role)) {
-                // Logged in but wrong role
                 if (redirectTo) {
                     router.push(redirectTo);
                 } else {
-                    // Default role dashboard
                     const rolePrefix = (user.role === 'admin' || user.role === 'ops') ? '/ops' : `/${user.role}`;
                     router.push(`${rolePrefix}/dashboard`);
                 }
-            } else {
-                setAuthorized(true);
             }
         }
     }, [user, loading, router, allowedRoles, pathname, redirectTo]);
 
-    if (loading || !authorized) {
+    if (loading || !isAuthorized) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-orange-500 border-t-transparent"></div>
@@ -45,5 +45,9 @@ export default function RoleGuard({ children, allowedRoles, redirectTo }: RoleGu
         );
     }
 
-    return <AppShell>{children}</AppShell>;
+    if (withShell) {
+        return <AppShell>{children}</AppShell>;
+    }
+
+    return <>{children}</>;
 }

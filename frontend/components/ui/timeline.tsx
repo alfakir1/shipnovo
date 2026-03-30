@@ -31,13 +31,13 @@ export function Timeline({ items, className }: TimelineProps) {
                             <div
                                 className={cn(
                                     "h-7 w-7 rounded-full border-2 flex items-center justify-center shadow-sm",
-                                    status === "completed" && "border-brand-blue bg-brand-blue-50",
+                                    status === "completed" && "border-brand-blue-500 bg-brand-blue-50",
                                     status === "current" && "border-accent bg-brand-orange-50",
                                     status === "pending" && "border-border bg-muted"
                                 )}
                             >
                                 {status === "completed" && (
-                                    <div className="h-2.5 w-2.5 rounded-full bg-brand-blue" />
+                                    <div className="h-2.5 w-2.5 rounded-full bg-brand-blue-500" />
                                 )}
                                 {status === "current" && (
                                     <div className="h-2.5 w-2.5 rounded-full bg-accent animate-pulse" />

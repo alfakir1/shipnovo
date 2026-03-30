@@ -14,6 +14,13 @@ class Document extends Model
         'uploaded_by',
     ];
 
+    protected $appends = ['file_url'];
+
+    public function getFileUrlAttribute()
+    {
+        return asset('storage/' . $this->file_path);
+    }
+
     public function shipment()
     {
         return $this->belongsTo(Shipment::class);

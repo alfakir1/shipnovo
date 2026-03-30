@@ -57,3 +57,10 @@ yarn-error.log*
 # Other
 /api/vendor/
 /api/node_modules/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

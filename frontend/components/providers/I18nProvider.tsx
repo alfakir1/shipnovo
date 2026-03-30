@@ -10,7 +10,7 @@ type Locale = 'en' | 'ar';
 interface I18nContextType {
     locale: Locale;
     setLocale: (locale: Locale) => void;
-    t: (key: string) => string;
+    t: (key: string, params?: Record<string, string | number>) => string;
     isRtl: boolean;
 }
 
@@ -47,18 +47,25 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
     const currentDict = locale === 'ar' ? ar : en;
 
-    // Simple dot notation accessor: t('common.dashboard')
-    const t = (key: string): string => {
+    // Simple dot notation accessor: t('common.dashboard', { count: 5 })
+    const t = (key: string, params?: Record<string, string | number>): string => {
         const keys = key.split('.');
         let result: unknown = currentDict;
         for (const k of keys) {
             if (typeof result !== 'object' || result === null || (result as Record<string, unknown>)[k] === undefined) {
                 console.warn(`Translation missing for key: ${key}`);
-                return key; // return key as fallback
+                return key; 
             }
             result = (result as Record<string, unknown>)[k];
         }
-        return result as string;
+
+        let translated = result as string;
+        if (params) {
+            Object.entries(params).forEach(([k, v]) => {
+                translated = translated.replace(`{${k}}`, String(v));
+            });
+        }
+        return translated;
     };
 
     return (

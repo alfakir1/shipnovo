@@ -3,132 +3,180 @@
 
 /* ─────────────────────────────────────────────
    ShipNovo Brand Palette — DO NOT ADD ANY OTHER COLORS
-   Primary Navy : #060F39
-   Secondary Blue: #34558C
-   Accent Orange : #EE7011
-   Accent Yellow : #FEA012
-   Neutral Border: #CFD0D3
+   Anchors (logo only; no white background).
+   Primary Navy : #08113A
+   Secondary Blue: #223F76
+   Accent Orange : #F77909
+   Accent Yellow : #FDD32A
+   Neutral Border: #DCDFE2
+   Scales 50–900: mix with white (light) / black (dark). No hue shift.
 ───────────────────────────────────────────── */
 
 :root {
-  /* ── Raw brand primitives ── */
-  --brand-navy-950: #030921;
-  --brand-navy-900: #060F39;
-  --brand-navy-800: #081641;
-  --brand-navy-700: #0D1F5C;
-  --brand-navy-600: #122454;
-  --brand-navy-500: #1C3370;
-  --brand-navy-400: #2B4A8C;
-  --brand-navy-300: #3E63A8;
-  --brand-navy-200: #6989C2;
-  --brand-navy-100: #A8BEDE;
-  --brand-navy-50: #E8EEF7;
+  color-scheme: light;
+  /* ── Anchors (500) ── */
+  --navy-500: #08113A;
+  --blue-500: #223F76;
+  --orange-500: #F77909;
+  --yellow-500: #FDD32A;
+  --border-neutral: #DCDFE2;
 
-  --brand-blue-900: #1E3260;
-  --brand-blue-700: #28437A;
-  --brand-blue-500: #34558C;
-  --brand-blue-300: #5A7DB5;
-  --brand-blue-100: #C0D0E8;
-  --brand-blue-50: #EBF0F8;
+  /* ── Navy scale (mix with white/black) ── */
+  --navy-50: color-mix(in oklab, var(--navy-500) 8%, white);
+  --navy-75: color-mix(in oklab, var(--navy-500) 12%, white);
+  --navy-100: color-mix(in oklab, var(--navy-500) 18%, white);
+  --navy-200: color-mix(in oklab, var(--navy-500) 35%, white);
+  --navy-300: color-mix(in oklab, var(--navy-500) 52%, white);
+  --navy-400: color-mix(in oklab, var(--navy-500) 70%, white);
+  --navy-600: color-mix(in oklab, var(--navy-500) 88%, black);
+  --navy-700: color-mix(in oklab, var(--navy-500) 75%, black);
+  --navy-800: color-mix(in oklab, var(--navy-500) 58%, black);
+  --navy-900: color-mix(in oklab, var(--navy-500) 42%, black);
 
-  --brand-orange-900: #7A3200;
-  --brand-orange-700: #C4510A;
-  --brand-orange-500: #EE7011;
-  --brand-orange-300: #F49D5A;
-  --brand-orange-100: #FCDEC5;
-  --brand-orange-50: #FEF3EA;
+  /* ── Blue scale ── */
+  --blue-50: color-mix(in oklab, var(--blue-500) 8%, white);
+  --blue-100: color-mix(in oklab, var(--blue-500) 20%, white);
+  --blue-200: color-mix(in oklab, var(--blue-500) 38%, white);
+  --blue-300: color-mix(in oklab, var(--blue-500) 55%, white);
+  --blue-400: color-mix(in oklab, var(--blue-500) 72%, white);
+  --blue-600: color-mix(in oklab, var(--blue-500) 85%, black);
+  --blue-700: color-mix(in oklab, var(--blue-500) 72%, black);
+  --blue-800: color-mix(in oklab, var(--blue-500) 58%, black);
+  --blue-900: color-mix(in oklab, var(--blue-500) 45%, black);
 
-  --brand-yellow-700: #C07800;
-  --brand-yellow-500: #FEA012;
-  --brand-yellow-300: #FEC45A;
-  --brand-yellow-100: #FEEBB0;
-  --brand-yellow-50: #FFFAE8;
+  /* ── Orange scale ── */
+  --orange-50: color-mix(in oklab, var(--orange-500) 6%, white);
+  --orange-100: color-mix(in oklab, var(--orange-500) 18%, white);
+  --orange-200: color-mix(in oklab, var(--orange-500) 38%, white);
+  --orange-300: color-mix(in oklab, var(--orange-500) 55%, white);
+  --orange-400: color-mix(in oklab, var(--orange-500) 72%, white);
+  --orange-600: color-mix(in oklab, var(--orange-500) 85%, black);
+  --orange-700: color-mix(in oklab, var(--orange-500) 72%, black);
+  --orange-800: color-mix(in oklab, var(--orange-500) 58%, black);
+  --orange-900: color-mix(in oklab, var(--orange-500) 45%, black);
 
-  --brand-border: #CFD0D3;
+  /* ── Yellow scale ── */
+  --yellow-50: color-mix(in oklab, var(--yellow-500) 5%, white);
+  --yellow-100: color-mix(in oklab, var(--yellow-500) 16%, white);
+  --yellow-200: color-mix(in oklab, var(--yellow-500) 35%, white);
+  --yellow-300: color-mix(in oklab, var(--yellow-500) 52%, white);
+  --yellow-400: color-mix(in oklab, var(--yellow-500) 70%, white);
+  --yellow-600: color-mix(in oklab, var(--yellow-500) 85%, black);
+  --yellow-700: color-mix(in oklab, var(--yellow-500) 72%, black);
+  --yellow-800: color-mix(in oklab, var(--yellow-500) 58%, black);
+  --yellow-900: color-mix(in oklab, var(--yellow-500) 45%, black);
+
+  /* Aliases for inline styles (var(--brand-navy-*)) */
+  --brand-navy-50: var(--navy-50);
+  --brand-navy-100: var(--navy-100);
+  --brand-navy-200: var(--navy-200);
+  --brand-navy-300: var(--navy-300);
+  --brand-navy-400: var(--navy-400);
+  --brand-navy-500: var(--navy-500);
+  --brand-navy-600: var(--navy-600);
+  --brand-navy-700: var(--navy-700);
+  --brand-navy-800: var(--navy-800);
+  --brand-navy-900: var(--navy-900);
 
   /* ── Semantic design tokens (light mode) ── */
-  --background: #F7F8FA;
-  --foreground: var(--brand-navy-900);
+  --background: var(--navy-75);
+  --foreground: var(--navy-800);
 
   --card: #FFFFFF;
-  --card-foreground: var(--brand-navy-900);
+  --card-foreground: var(--navy-900);
 
   --popover: #FFFFFF;
-  --popover-foreground: var(--brand-navy-900);
+  --popover-foreground: var(--navy-900);
+
+  /* Sidebar (Light: Medium-Dark Navy for clarity) */
+  --sidebar-bg: var(--navy-700);
+  --sidebar-fg: #FFFFFF;
+  --sidebar-muted: var(--navy-100);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-accent: var(--orange-500);
+
+  /* Topbar (Light: Very Light / White Surface) */
+  --topbar-bg: #FFFFFF;
+  --topbar-fg: var(--navy-800);
+  --topbar-muted: var(--navy-500);
+  --topbar-border: var(--border-neutral);
 
   /* Primary = Navy */
-  --primary: var(--brand-navy-900);
+  --primary: var(--navy-500);
   --primary-foreground: #FFFFFF;
 
-  /* Secondary = Brand Blue */
-  --secondary: var(--brand-blue-50);
-  --secondary-foreground: var(--brand-blue-500);
+  /* Secondary = Blue */
+  --secondary: var(--blue-50);
+  --secondary-foreground: var(--blue-600);
 
-  /* Accent = Orange */
-  --accent: var(--brand-orange-500);
+  /* Accent = Orange Centric */
+  --accent: var(--orange-500);
   --accent-foreground: #FFFFFF;
 
   /* Muted = neutral gray derived from navy */
-  --muted: #F0F1F4;
-  --muted-foreground: #5E6A87;
+  --muted: var(--navy-100);
+  --muted-foreground: var(--navy-500);
+
+  /* Link color */
+  --link: var(--blue-600);
 
   /* Destructive → orange-dark (no red) */
-  --destructive: var(--brand-orange-700);
+  --destructive: var(--orange-700);
   --destructive-foreground: #FFFFFF;
 
-  /* Success → blue tint (no green) */
-  --success: var(--brand-blue-500);
-  --success-foreground: #FFFFFF;
-  --success-muted: var(--brand-blue-50);
+  --border: var(--border-neutral);
+  --input: var(--border-neutral);
+  --ring: var(--navy-300);
 
-  /* Warning → yellow */
-  --warning: var(--brand-yellow-500);
-  --warning-foreground: var(--brand-navy-900);
-  --warning-muted: var(--brand-yellow-50);
-
-  --border: var(--brand-border);
-  --input: var(--brand-border);
-  --ring: var(--brand-navy-500);
-
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 }
 
 .dark {
-  --background: var(--brand-navy-950);
-  --foreground: #F0F4FB;
+  color-scheme: dark;
+  --background: var(--navy-900);
+  --foreground: #F7FAFF;
 
-  --card: var(--brand-navy-900);
-  --card-foreground: #F0F4FB;
+  /* Warmed slightly with orange to improve separation (anchored-only) */
+  --card: color-mix(in oklab, var(--navy-800) 94%, var(--orange-500));
+  --card-foreground: #F7FAFF;
 
-  --popover: var(--brand-navy-800);
-  --popover-foreground: #F0F4FB;
+  --popover: color-mix(in oklab, var(--navy-800) 96%, var(--orange-500));
+  --popover-foreground: #F7FAFF;
 
-  --primary: var(--brand-orange-500);
+  /* Sidebar (Dark: Premium Deep Navy) */
+  --sidebar-bg: var(--navy-900);
+  --sidebar-fg: #F7FAFF;
+  --sidebar-muted: var(--navy-100);
+  --sidebar-border: var(--navy-600);
+  --sidebar-accent: var(--orange-500);
+
+  /* Topbar (Dark: Match Sidebar/Background) */
+  --topbar-bg: var(--navy-800);
+  --topbar-fg: #F7FAFF;
+  --topbar-muted: var(--navy-100);
+  --topbar-border: var(--navy-600);
+
+  --primary: var(--orange-500);
   --primary-foreground: #FFFFFF;
 
-  --secondary: var(--brand-navy-700);
-  --secondary-foreground: var(--brand-navy-100);
+  --secondary: var(--navy-700);
+  --secondary-foreground: var(--navy-100);
 
-  --accent: var(--brand-orange-500);
+  --accent: var(--orange-500);
   --accent-foreground: #FFFFFF;
 
-  --muted: var(--brand-navy-800);
-  --muted-foreground: var(--brand-navy-200);
+  --muted: color-mix(in oklab, var(--navy-800) 96%, var(--orange-500));
+  --muted-foreground: var(--navy-100);
 
-  --destructive: var(--brand-orange-700);
+  /* Link color in dark mode */
+  --link: var(--blue-200);
+
+  --destructive: var(--orange-700);
   --destructive-foreground: #FFFFFF;
 
-  --success: var(--brand-blue-300);
-  --success-foreground: var(--brand-navy-900);
-  --success-muted: var(--brand-navy-700);
-
-  --warning: var(--brand-yellow-500);
-  --warning-foreground: var(--brand-navy-900);
-  --warning-muted: var(--brand-navy-700);
-
-  --border: var(--brand-navy-700);
-  --input: var(--brand-navy-700);
-  --ring: var(--brand-orange-500);
+  --border: var(--navy-600);
+  --input: var(--navy-600);
+  --ring: var(--orange-500);
 }
 
 /* ── Wire tokens → Tailwind v4 ── */
@@ -157,30 +205,81 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-success-muted: var(--success-muted);
-
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-warning-muted: var(--warning-muted);
-
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+
+  --color-topbar-bg: var(--topbar-bg);
+  --color-topbar-fg: var(--topbar-fg);
+  --color-topbar-muted: var(--topbar-muted);
+  --color-topbar-border: var(--topbar-border);
+
+  --color-link: var(--link);
+
   /* Brand primitives exposed as Tailwind utilities */
-  --color-brand-navy: var(--brand-navy-900);
-  --color-brand-navy-50: var(--brand-navy-50);
-  --color-brand-navy-100: var(--brand-navy-100);
-  --color-brand-navy-500: var(--brand-navy-500);
-  --color-brand-navy-800: var(--brand-navy-800);
-  --color-brand-blue: var(--brand-blue-500);
-  --color-brand-blue-50: var(--brand-blue-50);
-  --color-brand-orange: var(--brand-orange-500);
-  --color-brand-orange-50: var(--brand-orange-50);
-  --color-brand-yellow: var(--brand-yellow-500);
-  --color-brand-yellow-50: var(--brand-yellow-50);
+  --color-navy-50: var(--navy-50);
+  --color-navy-100: var(--navy-100);
+  --color-navy-200: var(--navy-200);
+  --color-navy-300: var(--navy-300);
+  --color-navy-400: var(--navy-400);
+  --color-navy-500: var(--navy-500);
+  --color-navy-600: var(--navy-600);
+  --color-navy-700: var(--navy-700);
+  --color-navy-800: var(--navy-800);
+  --color-navy-900: var(--navy-900);
+
+  /* Aliases so brand-navy-* classes work (same as navy-*) */
+  --color-brand-navy-50: var(--navy-50);
+  --color-brand-navy-100: var(--navy-100);
+  --color-brand-navy-200: var(--navy-200);
+  --color-brand-navy-300: var(--navy-300);
+  --color-brand-navy-400: var(--navy-400);
+  --color-brand-navy-500: var(--navy-500);
+  --color-brand-navy-600: var(--navy-600);
+  --color-brand-navy-700: var(--navy-700);
+  --color-brand-navy-800: var(--navy-800);
+  --color-brand-navy-900: var(--navy-900);
+
+  --color-brand-blue-50: var(--blue-50);
+  --color-brand-blue-100: var(--blue-100);
+  --color-brand-blue-200: var(--blue-200);
+  --color-brand-blue-300: var(--blue-300);
+  --color-brand-blue-400: var(--blue-400);
+  --color-brand-blue-500: var(--blue-500);
+  --color-brand-blue-600: var(--blue-600);
+  --color-brand-blue-700: var(--blue-700);
+  --color-brand-blue-800: var(--blue-800);
+  --color-brand-blue-900: var(--blue-900);
+
+  --color-brand-orange-50: var(--orange-50);
+  --color-brand-orange-100: var(--orange-100);
+  --color-brand-orange-200: var(--orange-200);
+  --color-brand-orange-300: var(--orange-300);
+  --color-brand-orange-400: var(--orange-400);
+  --color-brand-orange-500: var(--orange-500);
+  --color-brand-orange-600: var(--orange-600);
+  --color-brand-orange-700: var(--orange-700);
+  --color-brand-orange-800: var(--orange-800);
+  --color-brand-orange-900: var(--orange-900);
+
+  --color-brand-yellow-50: var(--yellow-50);
+  --color-brand-yellow-100: var(--yellow-100);
+  --color-brand-yellow-200: var(--yellow-200);
+  --color-brand-yellow-300: var(--yellow-300);
+  --color-brand-yellow-400: var(--yellow-400);
+  --color-brand-yellow-500: var(--yellow-500);
+  --color-brand-yellow-600: var(--yellow-600);
+  --color-brand-yellow-700: var(--yellow-700);
+  --color-brand-yellow-800: var(--yellow-800);
+  --color-brand-yellow-900: var(--yellow-900);
+
+  --color-border-neutral: var(--border-neutral);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -219,16 +318,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--muted);
+  background: var(--navy-50);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--brand-navy-200);
+  background: var(--navy-200);
   border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-navy-400);
+  background: var(--navy-300);
 }
 
 /* ── RTL helper ── */
@@ -249,42 +348,27 @@ body {
 
 /* ── Sidebar specific (used in AppShell) ── */
 .sidebar-nav {
-  background-color: var(--brand-navy-900);
+  background-color: var(--sidebar-bg);
+  border-inline-end: 1px solid var(--sidebar-border);
 }
 
 .sidebar-nav-item {
-  color: var(--brand-navy-200);
+  color: var(--sidebar-muted);
   transition: all 0.15s ease;
 }
 
 .sidebar-nav-item:hover {
-  background-color: var(--brand-navy-800);
-  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--sidebar-fg);
 }
 
 .sidebar-nav-item.active {
-  background-color: var(--brand-navy-800);
-  color: #FFFFFF;
-  border-inline-start: 3px solid var(--brand-orange-500);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--sidebar-fg);
+  border-inline-start: 3px solid var(--sidebar-accent);
 }
+
+/* Helpers refactored into Badge component variants */
 
 /* ── Status badge helpers ── */
-.badge-transit {
-  background: var(--brand-blue-50);
-  color: var(--brand-blue-500);
-}
-
-.badge-pending {
-  background: var(--brand-yellow-50);
-  color: var(--brand-yellow-700);
-}
-
-.badge-delivered {
-  background: var(--brand-navy-50);
-  color: var(--brand-navy-700);
-}
-
-.badge-cancelled {
-  background: var(--brand-orange-50);
-  color: var(--brand-orange-700);
-}
+/* Helpers refactored into Badge component variants */

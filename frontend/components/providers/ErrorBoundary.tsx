@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 interface Props {
     children: React.ReactNode;
@@ -34,10 +34,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
             return (
                 <div className="min-h-screen flex flex-col items-center justify-center bg-background p-8 text-center">
-                    <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-6">
-                        <AlertTriangle className="h-8 w-8 text-red-500" />
+                    <div className="p-6 rounded-3xl bg-destructive/10 border border-destructive/20 text-center max-w-md w-full animate-in fade-in zoom-in duration-300">
+                        <h2 className="text-2xl font-black text-destructive mb-4">Something went wrong</h2>
                     </div>
-                    <h1 className="text-2xl font-black text-foreground mb-2">Something went wrong</h1>
                     <p className="text-muted-foreground text-sm max-w-md mb-8">
                         {this.state.error?.message || 'An unexpected error occurred. The team has been notified.'}
                     </p>

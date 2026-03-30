@@ -67,6 +67,15 @@ class ShipmentStateMachine
         }
 
         $shipment->update(['status' => self::normalizeStatus($toStatus)]);
+
+        $adminsAndOps = \App\Models\User::whereIn('role', ['admin', 'ops'])->get();
+        \Illuminate\Support\Facades\Notification::send($adminsAndOps, new \App\Notifications\SystemNotification(
+            'Shipment Updated: ' . $shipment->tracking_number,
+            "Shipment status changed to " . self::normalizeStatus($toStatus) . ".",
+            'system_operation',
+            ['shipment_id' => $shipment->id]
+        ));
+
         return $shipment;
     }
 }

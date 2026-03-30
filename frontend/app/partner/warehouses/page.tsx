@@ -42,12 +42,12 @@ export default function PartnerWarehousesPage() {
                                 className={cn(
                                     "w-full text-left p-5 rounded-xl border transition-all hover:shadow-md group",
                                     selectedId === w.id
-                                        ? "border-[var(--brand-orange-500)] bg-orange-50/30"
+                                        ? "border-brand-orange-500 bg-brand-orange-50/30"
                                         : "border-border bg-card"
                                 )}
                             >
                                 <div className="flex items-start justify-between mb-3">
-                                    <div className="h-10 w-10 rounded-lg bg-[var(--brand-navy-50)] text-[var(--brand-navy-900)] flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-lg bg-navy-50 text-navy-900 flex items-center justify-center">
                                         <WarehouseIcon className="h-5 w-5" />
                                     </div>
                                     <Badge variant={w.status === 'active' ? 'success' : 'pending'}>{w.status}</Badge>
@@ -132,7 +132,7 @@ export default function PartnerWarehousesPage() {
                                                     <td className="px-6 py-4 text-center text-muted-foreground">
                                                         {item.volume_per_unit}m³
                                                     </td>
-                                                    <td className="px-6 py-4 text-right font-black text-[var(--brand-navy-900)]">
+                                                    <td className="px-6 py-4 text-right font-black text-navy-900">
                                                         {(item.quantity * item.volume_per_unit).toFixed(2)}m³
                                                     </td>
                                                 </tr>

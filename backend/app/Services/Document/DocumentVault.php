@@ -16,13 +16,23 @@ class DocumentVault
     {
         $path = $file->store("shipments/{$shipment->id}/documents", 'public');
 
-        return Document::create([
+        $document = Document::create([
             'shipment_id' => $shipment->id,
             'name' => $file->getClientOriginalName(),
             'file_path' => $path,
             'doc_type' => $type,
             'uploaded_by' => $userId,
         ]);
+
+        $adminsAndOps = \App\Models\User::whereIn('role', ['admin', 'ops'])->get();
+        \Illuminate\Support\Facades\Notification::send($adminsAndOps, new \App\Notifications\SystemNotification(
+            'New Document Uploaded',
+            "A {$type} document was uploaded for shipment {$shipment->tracking_number}.",
+            'system_operation',
+            ['shipment_id' => $shipment->id]
+        ));
+
+        return $document;
     }
 
     /**

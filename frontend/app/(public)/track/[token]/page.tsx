@@ -1,12 +1,13 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
 import { usePublicTracking } from '@/hooks/usePublicTracking';
-import { Package, MapPin, ArrowRight, Clock, AlertTriangle, Ship } from 'lucide-react';
+import { MapPin, ArrowRight, Clock, AlertTriangle, Ship } from 'lucide-react';
 import { Badge, statusVariant } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Timeline } from '@/components/ui/timeline';
-import Link from 'next/link';
 
 export default function PublicTrackingPage() {
     const { token } = useParams() as { token: string };
@@ -41,7 +42,7 @@ export default function PublicTrackingPage() {
         );
     }
 
-    const timelineItems = shipment.events.map((e: any) => ({
+    const timelineItems = (shipment.events || []).map((e: { title: string; description: string; created_at: string; is_current?: boolean }) => ({
         title: e.title,
         description: e.description,
         date: new Date(e.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
@@ -50,13 +51,12 @@ export default function PublicTrackingPage() {
 
     return (
         <div className="min-h-screen bg-muted/30 pb-20">
-            {/* Public Header */}
+            {/* Public Header — official logo per brand audit */}
             <header className="bg-card border-b border-border py-4 px-6 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-brand-orange-500 flex items-center justify-center text-white">
-                        <Ship className="h-4 w-4" />
+                <Link href="/" className="flex items-center gap-3">
+                    <div className="rounded-xl p-2 bg-brand-navy-50 dark:bg-white/10 border border-border shadow-sm">
+                        <Image src="/brand/logo.png" alt="ShipNovo" width={120} height={36} className="h-8 w-auto object-contain" />
                     </div>
-                    <span className="font-black text-xl tracking-tight">ShipNovo</span>
                 </Link>
                 <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest border-brand-orange-200 text-brand-orange-600 bg-brand-orange-50/50">
                     Live Tracking
@@ -143,16 +143,24 @@ export default function PublicTrackingPage() {
     );
 }
 
-function Button({ children, variant, size, className, asChild }: any) {
+interface ButtonProps {
+    children: React.ReactNode;
+    variant?: 'accent';
+    size?: 'lg';
+    className?: string;
+    asChild?: boolean;
+}
+
+function Button({ children, variant, size, className }: ButtonProps) {
     const base = "inline-flex items-center justify-center rounded-xl font-bold transition-all focus:outline-none focus:ring-2 disabled:opacity-50 disabled:pointer-events-none";
-    const variants: any = {
-        accent: "bg-brand-orange-500 text-white hover:bg-brand-orange-600 shadow-[0_4px_12px_rgba(238,112,17,0.3)]",
+    const variants: Record<string, string> = {
+        accent: "bg-brand-orange-500 text-white hover:bg-brand-orange-600 shadow-lg shadow-brand-orange-500/30",
     };
-    const sizes: any = {
+    const sizes: Record<string, string> = {
         lg: "h-12 px-8 text-base",
     };
     return (
-        <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}>
+        <button className={`${base} ${variant ? variants[variant] : ''} ${size ? sizes[size] : ''} ${className}`}>
             {children}
         </button>
     );

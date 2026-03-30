@@ -15,6 +15,10 @@ class ShipmentEngine
     public function listForUser(User $user, array $filters = [])
     {
         $query = Shipment::with(['customer', 'creator']);
+        
+        if (in_array($user->role, ['admin', 'ops', 'partner'])) {
+            $query->with(['activeReturn', 'rating']);
+        }
 
         if ($user->role === 'customer') {
             $query->where('customer_id', $user->id);
@@ -54,7 +58,8 @@ class ShipmentEngine
             // Ensure customer_id mapping if not provied (customer creating for self)
             $customerId = ($creator->role === 'customer') ? $creator->id : ($data['customer_id'] ?? $creator->id);
 
-            return Shipment::create([
+            $shipment = Shipment::create([
+                'tracking_token' => 'TKN-' . strtoupper(Str::random(16)),
                 'tracking_number' => 'SNV-' . strtoupper(Str::random(8)),
                 'customer_id' => $customerId,
                 'created_by' => $creator->id,
@@ -73,6 +78,16 @@ class ShipmentEngine
                 'pallet_count' => $data['pallet_count'] ?? 1,
                 'pickup_date' => $data['pickup_date'] ?? null,
             ]);
+
+            $adminsAndOps = User::whereIn('role', ['admin', 'ops'])->get();
+            \Illuminate\Support\Facades\Notification::send($adminsAndOps, new \App\Notifications\SystemNotification(
+                'New Shipment: ' . $shipment->tracking_number,
+                'A new shipment was created by ' . $creator->name,
+                'system_operation',
+                ['shipment_id' => $shipment->id]
+            ));
+
+            return $shipment;
         });
     }
 

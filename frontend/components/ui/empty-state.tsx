@@ -19,7 +19,7 @@ export function EmptyState({ icon, illustrationSrc, title, description, action, 
                     <Image src={illustrationSrc} alt={title} fill className="object-contain" />
                 </div>
             ) : icon ? (
-                <div className="mb-4 p-5 rounded-2xl bg-brand-navy-50 text-brand-navy">
+                <div className="mb-4 p-5 rounded-2xl bg-navy-50 text-navy-700">
                     {icon}
                 </div>
             ) : null}

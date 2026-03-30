@@ -20,6 +20,11 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'customer_id');
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'customer_id');
+    }
+
     public function shipment()
     {
         return $this->belongsTo(Shipment::class);
@@ -28,5 +33,10 @@ class Ticket extends Model
     public function comments()
     {
         return $this->hasMany(TicketComment::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(TicketMessage::class);
     }
 }

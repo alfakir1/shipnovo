@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useI18n } from '@/components/providers/I18nProvider';
-import { Ship, User, Mail, Lock, Building2, ArrowRight, Globe, ShieldCheck } from 'lucide-react';
+import { User, Mail, Lock, Building2, ArrowRight, Globe, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function SignupPage() {
@@ -54,7 +54,7 @@ export default function SignupPage() {
         <div className="min-h-screen flex font-sans" style={{ direction: isRtl ? 'rtl' : 'ltr', fontFamily: isRtl ? "'Noto Kufi Arabic', sans-serif" : "inherit" }}>
             {/* Left panel — premium split layout with local image */}
             <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 flex-col justify-between p-12 relative overflow-hidden"
-                style={{ backgroundColor: 'var(--brand-navy-900)' }}>
+                style={{ backgroundColor: 'var(--navy-900)' }}>
 
                 {/* Background Image with overlay */}
                 <div className="absolute inset-0 z-0">
@@ -64,22 +64,24 @@ export default function SignupPage() {
                         fill
                         className="object-cover opacity-20 rotate-180"
                     />
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--brand-navy-950) 0%, var(--brand-navy-900) 100%)', opacity: 0.8 }} />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--brand-navy-900) 0%, var(--navy-800) 100%)', opacity: 0.8 }} />
                 </div>
 
                 <div className="absolute -bottom-24 -inline-end-24 h-64 w-64 rounded-full opacity-10"
-                    style={{ backgroundColor: 'var(--brand-yellow-500)' }} />
+                    style={{ backgroundColor: 'var(--yellow-500)' }} />
                 <div className="absolute top-12 -inline-start-12 h-96 w-96 rounded-full opacity-5"
-                    style={{ backgroundColor: 'var(--brand-blue-500)' }} />
+                    style={{ backgroundColor: 'var(--blue-500)' }} />
 
                 {/* Logo */}
-                <div className="relative z-10 flex items-center gap-3">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg"
-                            style={{ backgroundColor: 'var(--brand-orange-500)' }}>
-                            <Ship className="h-5 w-5 text-white rtl-flip" />
-                        </div>
-                        <span className="text-2xl font-black text-white tracking-tight">ShipNovo</span>
+                <div className="relative z-10">
+                    <Link href="/" className="inline-block bg-white rounded-2xl p-3 shadow-2xl shadow-brand-navy-900/20 transform hover:-translate-y-1 transition-all">
+                        <Image
+                            src="/brand/logo.png"
+                            alt="ShipNovo"
+                            width={160}
+                            height={45}
+                            className="h-10 w-auto object-contain"
+                        />
                     </Link>
                 </div>
 
@@ -87,15 +89,15 @@ export default function SignupPage() {
                 <div className="relative z-10">
                     <h2 className="text-4xl font-black text-white leading-tight mb-4">
                         {t('auth.signupLeftTitle')}<br />
-                        <span style={{ color: 'var(--brand-yellow-500)' }}>{t('auth.signupLeftTitleAccent')}</span>
+                        <span style={{ color: 'var(--yellow-500)' }}>{t('auth.signupLeftTitleAccent')}</span>
                     </h2>
-                    <p className="text-base leading-relaxed max-w-md" style={{ color: 'var(--brand-navy-100)' }}>
+                    <p className="text-base leading-relaxed max-w-md" style={{ color: 'var(--navy-100)' }}>
                         {t('auth.signupLeftDesc')}
                     </p>
                 </div>
 
                 {/* Footer credit */}
-                <div className="relative z-10 text-xs" style={{ color: 'var(--brand-navy-300)' }}>
+                <div className="relative z-10 text-xs" style={{ color: 'var(--navy-300)' }}>
                     © 2025 ShipNovo · Built for Orchestration
                 </div>
             </div>
@@ -107,7 +109,7 @@ export default function SignupPage() {
                     <button
                         onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold border transition-all hover:bg-muted"
-                        style={{ color: 'var(--brand-navy-700)', borderColor: 'var(--brand-border)' }}
+                        style={{ color: 'var(--navy-700)', borderColor: 'var(--border)' }}
                     >
                         <Globe className="h-4 w-4" />
                         {locale === 'ar' ? "English" : "العربية"}
@@ -116,12 +118,14 @@ export default function SignupPage() {
 
                 <div className="w-full max-w-md">
                     <div className="lg:hidden flex items-center justify-between mb-10 w-full">
-                        <div className="flex items-center gap-2.5">
-                            <div className="h-9 w-9 rounded-xl flex items-center justify-center"
-                                style={{ backgroundColor: 'var(--brand-orange-500)' }}>
-                                <Ship className="h-4.5 w-4.5 text-white rtl-flip" />
-                            </div>
-                            <span className="text-xl font-black text-foreground">ShipNovo</span>
+                        <div className="bg-brand-navy-50/50 rounded-xl p-2.5 border border-brand-navy-100/50 shadow-sm">
+                            <Image
+                                src="/brand/logo.png"
+                                alt="ShipNovo"
+                                width={140}
+                                height={40}
+                                className="h-9 w-auto object-contain"
+                            />
                         </div>
                         <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest border-brand-orange-200 text-brand-orange-600 bg-brand-orange-50/50">
                             Demo Mode
@@ -131,13 +135,13 @@ export default function SignupPage() {
                     {step === 'success' ? (
                         <div className="text-center py-12 animate-in zoom-in-95 duration-500">
                             <div className="mx-auto h-20 w-20 rounded-2xl flex items-center justify-center mb-6 shadow-xl"
-                                style={{ backgroundColor: 'var(--brand-navy-50)' }}>
-                                <ShieldCheck className="h-10 w-10" style={{ color: 'var(--brand-navy-900)' }} />
+                                style={{ backgroundColor: 'var(--navy-50)' }}>
+                                <ShieldCheck className="h-10 w-10" style={{ color: 'var(--navy-900)' }} />
                             </div>
                             <h2 className="text-3xl font-black text-foreground mb-3">{t('auth.accountCreated')}</h2>
                             <p className="text-muted-foreground text-sm leading-relaxed">{t('auth.requestSubmitted')}</p>
                             <div className="mt-8 flex items-center justify-center gap-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                                <div className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
+                                <div className="h-1.5 w-1.5 rounded-full bg-brand-orange-500 animate-pulse" />
                                 {t('auth.accountCreatedDesc')}
                             </div>
                         </div>
@@ -159,7 +163,7 @@ export default function SignupPage() {
                                             value={form.name}
                                             onChange={set('name')}
                                             className={fieldClass}
-                                            style={{ '--tw-ring-color': 'var(--brand-orange-500)' } as React.CSSProperties}
+                                            style={{ '--tw-ring-color': 'var(--orange-500)' } as React.CSSProperties}
                                         />
                                     </div>
                                 </div>
@@ -199,7 +203,7 @@ export default function SignupPage() {
                                         value={form.role}
                                         onChange={set('role' as keyof typeof form)}
                                         className="w-full h-11 px-4 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 transition-all shadow-sm appearance-none"
-                                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: isRtl ? 'left 1rem center' : 'right 1rem center', backgroundSize: '1rem', '--tw-ring-color': 'var(--brand-orange-500)' } as React.CSSProperties}
+                                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: isRtl ? 'left 1rem center' : 'right 1rem center', backgroundSize: '1rem', '--tw-ring-color': 'var(--orange-500)' } as React.CSSProperties}
                                     >
                                         <option value="customer">{t('auth.customer')}</option>
                                         <option value="partner">{t('auth.partner')}</option>
@@ -243,13 +247,7 @@ export default function SignupPage() {
                                 )}
 
                                 <button type="submit" disabled={loading}
-                                    className="w-full h-12 mt-4 rounded-xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60 shadow-lg"
-                                    style={{
-                                        backgroundColor: 'var(--brand-orange-500)',
-                                        boxShadow: '0 8px 24px rgba(238,112,17,0.25)'
-                                    }}
-                                    onMouseEnter={e => !loading && ((e.currentTarget as HTMLElement).style.backgroundColor = 'var(--brand-orange-700)')}
-                                    onMouseLeave={e => !loading && ((e.currentTarget as HTMLElement).style.backgroundColor = 'var(--brand-orange-500)')}>
+                                    className="w-full h-12 mt-4 rounded-xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60 shadow-lg shadow-brand-orange-500/25 bg-brand-orange-500 hover:bg-brand-orange-700">
                                     {loading ? (
                                         <div className="h-5 w-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
                                     ) : (
@@ -260,7 +258,7 @@ export default function SignupPage() {
 
                             <p className="text-center text-sm text-muted-foreground mt-8">
                                 {t('auth.haveAccount')}{' '}
-                                <Link href="/login" className="font-bold hover:underline" style={{ color: 'var(--brand-orange-500)' }}>
+                                <Link href="/login" className="font-bold hover:underline" style={{ color: 'var(--orange-500)' }}>
                                     {t('auth.login')}
                                 </Link>
                             </p>

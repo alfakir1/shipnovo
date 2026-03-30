@@ -44,7 +44,7 @@ export default function CustomerStoragePage() {
                                 key={w.id}
                                 onClick={() => setSelectedId(w.id)}
                                 className={`p-4 rounded-xl border text-left transition-all ${selectedId === w.id
-                                    ? "border-[var(--brand-orange-500)] bg-orange-50/20 ring-1 ring-[var(--brand-orange-500)]"
+                                    ? "border-[var(--brand-orange-500)] bg-brand-orange-50/20 dark:bg-brand-orange-900/10 ring-1 ring-[var(--brand-orange-500)]"
                                     : "border-border bg-card hover:border-[var(--brand-navy-200)]"
                                     }`}
                             >
@@ -100,7 +100,7 @@ export default function CustomerStoragePage() {
                                                     {item.name}
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
-                                                    <span className="inline-flex items-center justify-center h-7 px-3 rounded-full bg-blue-50 text-blue-700 font-bold text-xs ring-1 ring-inset ring-blue-700/10">
+                                                    <span className="inline-flex items-center justify-center h-7 px-3 rounded-full bg-brand-blue-50 dark:bg-brand-blue-900/40 text-brand-blue-700 dark:text-brand-blue-300 font-bold text-xs ring-1 ring-inset ring-brand-blue-700/10">
                                                         {item.quantity} units
                                                     </span>
                                                 </td>

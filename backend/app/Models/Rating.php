@@ -12,6 +12,7 @@ class Rating extends Model
         'partner_id',
         'score',
         'comment',
+        'suggestions',
     ];
 
     public function shipment()

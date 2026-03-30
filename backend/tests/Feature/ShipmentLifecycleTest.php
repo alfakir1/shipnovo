@@ -65,7 +65,7 @@ class ShipmentLifecycleTest extends TestCase
         $response->assertJsonPath('data.status', 'authorized');
 
         // Update shipment status to delivered to allow payment capture
-        \App\Models\Shipment::find($shipmentId)->update(['status' => 'delivered']);
+        Shipment::find($shipmentId)->update(['status' => 'delivered']);
 
         $assignment = \App\Models\ShipmentPartnerAssignment::create([
             'shipment_id' => $shipmentId,

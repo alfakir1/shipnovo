@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { ChatThread } from "@/components/chat/ChatThread";
 import { useState } from "react";
 
 export default function OpsShipmentDetailPage() {
@@ -51,8 +52,7 @@ export default function OpsShipmentDetailPage() {
             <div className="bg-card rounded-xl border border-border shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: 'var(--brand-navy-900)', color: 'white' }}>
+                        <div className="h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-sidebar-bg text-sidebar-fg">
                             <Package className="h-6 w-6" />
                         </div>
                         <div>
@@ -80,6 +80,7 @@ export default function OpsShipmentDetailPage() {
                     <TabsTrigger value="summary">{t('common.summary')}</TabsTrigger>
                     <TabsTrigger value="partners">{t('common.partners')}</TabsTrigger>
                     <TabsTrigger value="documents">{t('common.documents')}</TabsTrigger>
+                    <TabsTrigger value="chat">Chat Support</TabsTrigger>
                     <TabsTrigger value="status">{t('ops.shipments.pushStatus')}</TabsTrigger>
                 </TabsList>
 
@@ -132,7 +133,7 @@ export default function OpsShipmentDetailPage() {
                         </div>
                         {(shipment?.assignments?.length ?? 0) > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6">
-                                {shipment.assignments?.map((asn) => (
+                                {shipment.assignments?.map((asn: { id: number; partner?: { company_name: string }; leg_type: string; status: string }) => (
                                     <div key={asn.id} className="p-5 bg-muted/30 rounded-xl border border-border">
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="h-10 w-10 rounded-xl flex items-center justify-center text-sm font-black text-white"
@@ -158,7 +159,7 @@ export default function OpsShipmentDetailPage() {
                         <div className="p-5 border-b border-border"><h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('common.documents')}</h3></div>
                         {(shipment?.documents?.length ?? 0) > 0 ? (
                             <div className="divide-y divide-border">
-                                {shipment.documents?.map((doc) => (
+                                {shipment.documents?.map((doc: any) => (
                                     <div key={doc.id} className="flex items-center justify-between px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <FileText className="h-5 w-5" style={{ color: 'var(--brand-navy-500)' }} />
@@ -170,6 +171,10 @@ export default function OpsShipmentDetailPage() {
                             </div>
                         ) : <EmptyState title={t('common.noDocs')} className="py-16" />}
                     </div>
+                </TabsContent>
+
+                <TabsContent value="chat">
+                    <ChatThread shipmentId={id} />
                 </TabsContent>
 
                 {/* Status Update */}
@@ -234,7 +239,7 @@ export default function OpsShipmentDetailPage() {
                                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('auth.partner')}</p>
                                     </div>
                                     <div className="space-y-3">
-                                        {partners?.filter((p: any) => p.role_type === 'carrier').map((p: any) => (
+                                        {partners?.filter((p: { role_type: string }) => p.role_type === 'carrier').map((p: { id: number; company_name: string }) => (
                                             <div key={p.id} className="p-4 bg-muted/40 rounded-xl border border-border hover:border-brand-navy-200 transition-colors group">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div className="h-9 w-9 rounded-lg flex items-center justify-center text-sm font-black text-white"
@@ -266,7 +271,7 @@ export default function OpsShipmentDetailPage() {
                                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('status.customs')}</p>
                                     </div>
                                     <div className="space-y-3">
-                                        {partners?.filter((p: any) => p.role_type === 'customs').map((p: any) => (
+                                        {partners?.filter((p: { role_type: string }) => p.role_type === 'customs').map((p: { id: number; company_name: string }) => (
                                             <div key={p.id} className="p-4 bg-muted/40 rounded-xl border border-border hover:border-brand-blue-300 transition-colors group">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div className="h-9 w-9 rounded-lg flex items-center justify-center text-sm font-black text-white"

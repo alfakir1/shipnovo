@@ -31,16 +31,17 @@ export default function PartnerQuotesPage() {
             setSuccess(true);
             setSelectedShipment(null);
             setQuoteForm({ amount: '', eta_days: '', notes: '' });
-        } catch (err: any) {
-            console.error('Quote Submission Error:', err);
+        } catch (err: unknown) {
+            const e = err as { status?: number; errors?: Record<string, string[]>; message?: string };
+            console.error('Quote Submission Error:', e);
 
-            if (err.status === 422 && err.errors) {
-                const firstError = Object.values(err.errors)[0] as string[];
+            if (e.status === 422 && e.errors) {
+                const firstError = Object.values(e.errors)[0] as string[];
                 setError(firstError?.[0] || 'Validation failed');
-            } else if (err.status === 403) {
+            } else if (e.status === 403) {
                 setError('You must be a verified partner to submit quotes. Please contact support.');
             } else {
-                setError(err.message || 'Failed to submit quote');
+                setError(e.message || 'Failed to submit quote');
             }
         }
     };
@@ -97,7 +98,7 @@ export default function PartnerQuotesPage() {
                             )}
 
                             {success && (
-                                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600 text-xs flex items-center gap-2">
+                                <div className="p-3 bg-brand-blue-500/10 border border-brand-blue-500/20 rounded-lg text-brand-blue-600 text-xs flex items-center gap-2">
                                     <AlertCircle className="h-4 w-4" /> Quote submitted successfully!
                                 </div>
                             )}

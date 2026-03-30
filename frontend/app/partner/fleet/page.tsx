@@ -72,7 +72,7 @@ export default function PartnerFleetPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-lg bg-brand-blue-50 dark:bg-brand-blue-900/40 text-brand-blue-600 dark:text-brand-blue-400 flex items-center justify-center">
                                             <Truck className="h-4 w-4" />
                                         </div>
                                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Vehicles</span>
@@ -81,7 +81,7 @@ export default function PartnerFleetPage() {
                                 </div>
                                 <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-8 w-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-lg bg-brand-blue-50 dark:bg-brand-blue-900/40 text-brand-blue-600 dark:text-brand-blue-400 flex items-center justify-center">
                                             <Gauge className="h-4 w-4" />
                                         </div>
                                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Today</span>
@@ -92,7 +92,7 @@ export default function PartnerFleetPage() {
                                 </div>
                                 <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-lg bg-brand-orange-50 dark:bg-brand-orange-900/40 text-brand-orange-600 dark:text-brand-orange-400 flex items-center justify-center">
                                             <ShieldCheck className="h-4 w-4" />
                                         </div>
                                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Availability</span>

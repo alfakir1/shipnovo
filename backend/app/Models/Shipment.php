@@ -38,6 +38,8 @@ class Shipment extends Model
         'pickup_date',
     ];
 
+    protected $appends = ['has_return_request'];
+
     public function customer()
     {
         return $this->belongsTo(User::class, 'customer_id');
@@ -81,6 +83,16 @@ class Shipment extends Model
     public function returns()
     {
         return $this->hasMany(ReturnRequest::class);
+    }
+
+    public function activeReturn()
+    {
+        return $this->hasOne(ReturnRequest::class)->where('status', 'pending');
+    }
+
+    public function getHasReturnRequestAttribute()
+    {
+        return $this->returns()->where('status', 'pending')->exists();
     }
 
     public function rating()

@@ -56,7 +56,7 @@ export default function NewShipmentPage() {
 
             const res = await createShipment.mutateAsync(sanitizedForm);
 
-            if (res && (res as any).id) {
+            if (res && typeof res === 'object' && 'id' in res) {
                 router.push(`/customer/shipments/${(res as { id: number }).id}`);
             } else {
                 router.push('/customer/shipments');
@@ -105,7 +105,7 @@ export default function NewShipmentPage() {
                                 i < step && "border-transparent text-white",
                                 i === step && "border-transparent text-white",
                                 i > step && "border-border text-muted-foreground bg-card"
-                            )} style={i <= step ? { backgroundColor: 'var(--brand-orange-500)' } : {}}>
+                            )} style={i <= step ? { backgroundColor: 'var(--accent)' } : {}}>
                                 {i < step ? <CheckCircle className="h-3.5 w-3.5" /> : i + 1}
                             </div>
                             <span className={cn(
@@ -117,7 +117,7 @@ export default function NewShipmentPage() {
                             <div className={cn(
                                 "flex-1 h-0.5 mx-2 rounded",
                                 i < step ? "" : "bg-border"
-                            )} style={i < step ? { backgroundColor: 'var(--brand-orange-300)' } : {}} />
+                            )} style={i < step ? { backgroundColor: 'var(--orange-300)' } : {}} />
                         )}
                     </React.Fragment>
                 ))}
@@ -171,7 +171,7 @@ export default function NewShipmentPage() {
                                         <button key={m} onClick={() => setForm(p => ({ ...p, mode: m }))}
                                             className={cn(
                                                 "flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-sm font-bold capitalize transition-all",
-                                                form.mode === m ? "border-accent bg-brand-orange-50 text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
+                                                form.mode === m ? "border-accent bg-orange-50 text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
                                             )}>
                                             <Icon className="h-6 w-6" />
                                             {t(`shipments.${m}Freight`)}
@@ -247,7 +247,7 @@ export default function NewShipmentPage() {
                                 onClick={() => setForm(p => ({ ...p, status: 'processing' }))}
                                 className={cn(
                                     "flex-1 p-4 rounded-xl border-2 text-sm font-bold transition-all",
-                                    form.status !== 'rfq' ? "border-accent bg-brand-orange-50 text-accent" : "border-border bg-card text-muted-foreground"
+                                    form.status !== 'rfq' ? "border-accent bg-orange-50 text-accent" : "border-border bg-card text-muted-foreground"
                                 )}
                             >
                                 Multi-carrier (Instant)
@@ -256,7 +256,7 @@ export default function NewShipmentPage() {
                                 onClick={() => setForm(p => ({ ...p, status: 'rfq', customer_price: '' }))}
                                 className={cn(
                                     "flex-1 p-4 rounded-xl border-2 text-sm font-bold transition-all",
-                                    form.status === 'rfq' ? "border-accent bg-brand-orange-50 text-accent" : "border-border bg-card text-muted-foreground"
+                                    form.status === 'rfq' ? "border-accent bg-orange-50 text-accent" : "border-border bg-card text-muted-foreground"
                                 )}
                             >
                                 Request for Quotation (RFQ)
@@ -265,8 +265,8 @@ export default function NewShipmentPage() {
 
                         {form.status === 'rfq' ? (
                             <div className="p-8 rounded-xl border border-dashed border-border bg-muted/20 text-center space-y-3">
-                                <div className="h-12 w-12 rounded-full bg-brand-orange-100 flex items-center justify-center mx-auto">
-                                    <Package className="h-6 w-6 text-brand-orange-600" />
+                                <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto">
+                                    <Package className="h-6 w-6 text-orange-600" />
                                 </div>
                                 <h3 className="text-sm font-bold text-foreground">RFQ Mode Active</h3>
                                 <p className="text-xs text-muted-foreground max-w-xs mx-auto">
@@ -282,7 +282,7 @@ export default function NewShipmentPage() {
                                             onClick={() => setForm(p => ({ ...p, customer_price: String(q.price ?? q.amount), service_type: q.service_type ?? 'standard' }))}
                                             className={cn(
                                                 "flex items-center justify-between p-5 rounded-xl border-2 cursor-pointer transition-all",
-                                                Number(form.customer_price) === (q.price ?? q.amount) ? "border-accent bg-brand-orange-50" : "border-border bg-card hover:border-muted-foreground/30"
+                                                Number(form.customer_price) === (q.price ?? q.amount) ? "border-accent bg-orange-50" : "border-border bg-card hover:border-muted-foreground/30"
                                             )}>
                                             <div>
                                                 <p className="text-sm font-bold text-foreground capitalize">{q.service_type} Service</p>
@@ -307,7 +307,7 @@ export default function NewShipmentPage() {
                                             onClick={() => setForm(p => ({ ...p, customer_price: q.price.replace(',', ''), service_type: q.type }))}
                                             className={cn(
                                                 "flex items-center justify-between p-5 rounded-xl border-2 cursor-pointer transition-all",
-                                                form.service_type === q.type ? "border-accent bg-brand-orange-50" : "border-border bg-card hover:border-muted-foreground/30"
+                                                form.service_type === q.type ? "border-accent bg-orange-50" : "border-border bg-card hover:border-muted-foreground/30"
                                             )}>
                                             <div>
                                                 <p className="text-sm font-bold text-foreground">{q.label}</p>

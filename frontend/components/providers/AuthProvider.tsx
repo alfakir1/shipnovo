@@ -67,8 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
                 throw new Error(response.data.error?.message || 'Login failed');
             }
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.response?.data?.error?.message || error.message || 'Login failed';
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string; error?: { message?: string } } }; message?: string };
+            const message = err.response?.data?.message || err.response?.data?.error?.message || err.message || 'Login failed';
             throw new Error(message);
         }
     };
@@ -83,8 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
                 throw new Error(response.data.error?.message || 'Registration failed');
             }
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.response?.data?.error?.message || error.message || 'Registration failed';
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string; error?: { message?: string } } }; message?: string };
+            const message = err.response?.data?.message || err.response?.data?.error?.message || err.message || 'Registration failed';
             throw new Error(message);
         }
     };

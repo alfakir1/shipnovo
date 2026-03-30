@@ -1,7 +1,7 @@
 'use client';
 
 import { useShipments, Shipment } from "@/hooks/useShipments";
-import { Search, Filter, Eye, Package, ArrowRight, MoreVertical } from "lucide-react";
+import { Search, Filter, Eye, Package, ArrowRight, MoreVertical, Star } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge, statusVariant } from "@/components/ui/badge";
@@ -73,7 +73,15 @@ export default function OpsShipmentsPage() {
                                             <Package className="h-4 w-4" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-foreground">{s.tracking_number}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-sm font-bold text-foreground">{s.tracking_number}</p>
+                                                {s.rating && (
+                                                    <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-brand-orange-50 text-brand-orange-600 text-[10px] font-black shadow-sm border border-brand-orange-100">
+                                                        <Star className="h-2.5 w-2.5 fill-brand-orange-500" />
+                                                        {s.rating.score}
+                                                    </div>
+                                                )}
+                                            </div>
                                             <p className="text-xs text-muted-foreground">{s.description ?? '—'}</p>
                                         </div>
                                     </div>
@@ -86,7 +94,16 @@ export default function OpsShipmentsPage() {
                                         <span className="truncate max-w-[70px]">{s.destination?.split(',')[0]}</span>
                                     </div>
                                 </TableCell>
-                                <TableCell><Badge variant={statusVariant(s.status)} className="capitalize">{t(`status.${s.status}`) || s.status}</Badge></TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={statusVariant(s.status)} className="capitalize">{t(`status.${s.status}`) || s.status}</Badge>
+                                        {s.has_return_request && (
+                                            <Badge variant="destructive" className="animate-pulse bg-red-600 text-[10px] py-0.5 px-1.5 uppercase font-bold tracking-tight shadow-sm border-0">
+                                                {t('shipments.returnRequested')}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </TableCell>
                                 <TableCell className="text-right rtl:text-left text-sm font-bold text-foreground">${(s.customer_price ?? 0).toLocaleString()}</TableCell>
                                 <TableCell>
                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

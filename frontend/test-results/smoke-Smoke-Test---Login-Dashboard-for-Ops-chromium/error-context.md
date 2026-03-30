@@ -1,0 +1,56 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - img "ShipNovo Logistics" [ref=e5]
+      - link "ShipNovo" [ref=e10] [cursor=pointer]:
+        - /url: /
+        - img "ShipNovo" [ref=e11]
+      - generic [ref=e12]:
+        - heading "Global 4PL Command at Your Fingertips" [level=2] [ref=e13]:
+          - text: Global 4PL Command
+          - text: at Your Fingertips
+        - paragraph [ref=e14]: Orchestrate shipments, manage carriers, and track every leg of the journey — all in one platform.
+      - generic [ref=e15]: © 2025 ShipNovo 4PL Platform. Global SaaS Quality.
+    - generic [ref=e16]:
+      - button "العربية" [ref=e18]:
+        - img [ref=e19]
+        - text: العربية
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - heading "Welcome back" [level=1] [ref=e24]
+          - paragraph [ref=e25]: Sign in to your ShipNovo account
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - generic [ref=e28]: Email address
+            - generic [ref=e29]:
+              - img [ref=e30]
+              - textbox "you@company.com" [ref=e33]
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - generic [ref=e36]: Password
+              - button
+            - generic [ref=e37]:
+              - img [ref=e38]
+              - textbox "••••••••" [ref=e41]
+              - button [ref=e42]:
+                - img [ref=e43]
+          - button "Sign In" [ref=e46]:
+            - text: Sign In
+            - img [ref=e47]
+        - generic [ref=e49]:
+          - paragraph [ref=e50]: Quick Access (Demo)
+          - generic [ref=e51]:
+            - button "Customer" [ref=e52]
+            - button "Operations" [ref=e53]
+            - button "Partner" [ref=e54]
+        - paragraph [ref=e55]:
+          - text: New to ShipNovo?
+          - link "Create an account" [ref=e56] [cursor=pointer]:
+            - /url: /signup
+  - button "Open Next.js Dev Tools" [ref=e62] [cursor=pointer]:
+    - img [ref=e63]
+  - alert [ref=e66]
+```

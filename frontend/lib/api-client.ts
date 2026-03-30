@@ -36,7 +36,7 @@ apiClient.interceptors.response.use(
         };
 
         if (error.response) {
-            const data = error.response.data as any;
+            const data = error.response.data as { message?: string; error?: { message?: string }; errors?: Record<string, string[]> };
             normalizedError.message = data.message || data.error?.message || normalizedError.message;
             normalizedError.errors = data.errors || {};
 
@@ -54,8 +54,8 @@ apiClient.interceptors.response.use(
 /**
  * Helper to extract data from the envelope
  */
-export const extractData = <T>(response: any): T => {
-    return response.data as T;
+export const extractData = <T>(response: { data: T }): T => {
+    return response.data;
 };
 
 export default apiClient;

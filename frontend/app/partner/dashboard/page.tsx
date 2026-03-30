@@ -15,7 +15,7 @@ export default function PartnerDashboard() {
     const { data: analytics, isLoading: loadingA } = usePartnerAnalytics();
     const { data: jobsData, isLoading: loadingJobs } = usePartnerJobs();
 
-    const jobs = jobsData ?? [];
+    const jobs = Array.isArray(jobsData) ? jobsData : ((jobsData as any)?.data ?? []);
 
     return (
         <div className="space-y-8 pb-12">
@@ -53,10 +53,10 @@ export default function PartnerDashboard() {
 
             <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-border flex items-center justify-between"
-                    style={{ backgroundColor: 'var(--brand-navy-50)' }}>
+                    style={{ backgroundColor: 'var(--navy-50)' }}>
                     <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('partner.dashboard.activeAssignments')}</h2>
                     <Link href="/partner/jobs" className="text-xs font-bold flex items-center gap-1 hover:underline"
-                        style={{ color: 'var(--brand-orange-500)' }}>
+                        style={{ color: 'var(--orange-500)' }}>
                         {t('common.viewAll')} <ArrowRight className="h-3.5 w-3.5 rtl-flip" />
                     </Link>
                 </div>
@@ -72,11 +72,11 @@ export default function PartnerDashboard() {
                     </div>
                 ) : jobs.length > 0 ? (
                     <div className="divide-y divide-border">
-                        {jobs.slice(0, 5).map((job: any) => (
+                        {jobs.slice(0, 5).map((job: { id: number; tracking_number: string; mode: string; status: string }) => (
                             <Link key={job.id} href={`/partner/jobs/${job.id}`}
                                 className="flex items-center gap-4 px-6 py-4 hover:bg-muted/40 transition-colors group">
                                 <div className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                                    style={{ backgroundColor: 'var(--brand-navy-50)', color: 'var(--brand-navy-900)' }}>
+                                    style={{ backgroundColor: 'var(--navy-50)', color: 'var(--navy-900)' }}>
                                     <Truck className="h-4 w-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">

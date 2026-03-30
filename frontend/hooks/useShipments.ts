@@ -32,6 +32,13 @@ export interface Shipment {
     assignments?: Assignment[];
     documents?: ShipmentDocument[];
     events?: ShipmentEvent[];
+    has_return_request?: boolean;
+    rating?: {
+        id: number;
+        score: number;
+        comment?: string;
+        suggestions?: string;
+    };
 }
 
 export interface Assignment {
@@ -46,9 +53,14 @@ export interface Assignment {
 
 export interface ShipmentDocument {
     id: number;
+    shipment_id?: number;
     name?: string;
-    type: string;
+    type?: string;
+    doc_type?: string;
     url?: string;
+    file_path?: string;
+    file_url?: string;
+    created_at?: string;
 }
 
 export interface ShipmentEvent {
@@ -200,6 +212,19 @@ export function useCreateTicket() {
     });
 }
 
+export function useCreateGeneralTicket() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: Record<string, unknown>) => {
+            const response = await apiClient.post('/tickets', data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tickets'] });
+        }
+    });
+}
+
 export function useAddComment() {
     const queryClient = useQueryClient();
     return useMutation({
@@ -216,17 +241,36 @@ export function useAddComment() {
 export function useUploadDocument() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async ({ shipmentId, file, type }: { shipmentId: string, file: File, type: string }) => {
+        mutationFn: async ({ shipmentId, file, type, name }: { shipmentId: string | number, file: File, type: string, name?: string }) => {
             const formData = new FormData();
+            if (shipmentId && shipmentId !== '0' && shipmentId !== 0) {
+                formData.append('shipment_id', shipmentId.toString());
+            }
             formData.append('file', file);
-            formData.append('type', type);
-            const response = await apiClient.post(`/shipments/${shipmentId}/documents`, formData, {
+            formData.append('doc_type', type);
+            if (name) formData.append('name', name);
+            
+            const response = await apiClient.post(`/documents`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             return response.data;
         },
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['shipment', variables.shipmentId] });
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            queryClient.invalidateQueries({ queryKey: ['documents', String(variables.shipmentId)] });
+        }
+    });
+}
+
+export function useDeleteDocument() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: number | string) => {
+            const response = await apiClient.delete(`/documents/${id}`);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
         }
     });
 }
@@ -236,7 +280,8 @@ export function usePartners() {
         queryKey: ['partners'],
         queryFn: async () => {
             const response = await apiClient.get('/partners');
-            return response.data;
+            const data = response.data?.data ?? response.data;
+            return Array.isArray(data) ? data : (data?.data ?? []);
         }
     });
 }
@@ -276,7 +321,7 @@ export function usePartnerJobs(params?: Record<string, unknown>) {
         queryKey: ['partner-jobs', params],
         queryFn: async () => {
             const response = await apiClient.get('/shipments', { params });
-            return response.data;
+            return response.data?.data ?? response.data;
         },
     });
 }
@@ -299,7 +344,7 @@ export function useTickets(params?: Record<string, unknown>) {
         queryKey: ['tickets', params],
         queryFn: async () => {
             const response = await apiClient.get('/tickets', { params });
-            return response.data;
+            return response.data?.data ?? response.data;
         },
     });
 }
@@ -309,13 +354,13 @@ export function useShipmentTickets(shipmentId: string | number) {
         queryKey: ['shipment-tickets', shipmentId],
         queryFn: async () => {
             const response = await apiClient.get(`/shipments/${shipmentId}/tickets`);
-            return response.data;
+            return response.data?.data ?? response.data;
         },
         enabled: !!shipmentId,
     });
 }
 
-export function useInvoices(params?: Record<string, any>) {
+export function useInvoices(params?: Record<string, unknown>) {
     return useQuery({
         queryKey: ['invoices', params],
         queryFn: async () => {
@@ -327,6 +372,42 @@ export function useInvoices(params?: Record<string, any>) {
             const response = await apiClient.get('/invoices', { params });
             return response.data?.data ?? response.data;
         },
+    });
+}
+
+export function usePayInvoice() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (invoiceId: number | string) => {
+            const response = await apiClient.post(`/invoices/${invoiceId}/pay`);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['invoices'] });
+        }
+    });
+}
+
+export function usePricing(params?: Record<string, unknown>) {
+    return useQuery({
+        queryKey: ['pricing', params],
+        queryFn: async () => {
+            const response = await apiClient.get('/pricing', { params });
+            return response.data?.data ?? response.data;
+        }
+    });
+}
+
+export function useCreatePricingPackage() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: Record<string, unknown>) => {
+            const response = await apiClient.post('/pricing', data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['pricing'] });
+        }
     });
 }
 
@@ -413,7 +494,7 @@ export function usePendingPartners() {
         queryKey: ['pending-partners'],
         queryFn: async () => {
             const response = await apiClient.get('/partners/pending');
-            return response.data;
+            return response.data?.data ?? response.data;
         }
     });
 }
@@ -442,6 +523,32 @@ export function useCreateReturn() {
         },
         onSuccess: (_, v) => {
             queryClient.invalidateQueries({ queryKey: ['shipment', v.shipmentId.toString()] });
+        }
+    });
+}
+
+/* ─── P0: Ratings & Feedback ─── */
+export function useShipmentRating(shipmentId: string | number) {
+    return useQuery({
+        queryKey: ['shipment-rating', shipmentId],
+        queryFn: async () => {
+            const response = await apiClient.get(`/shipments/${shipmentId}/rating`);
+            return response.data?.data ?? response.data;
+        },
+        enabled: !!shipmentId
+    });
+}
+
+export function useRateShipment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ shipmentId, data }: { shipmentId: string | number, data: { score: number, comment?: string, suggestions?: string } }) => {
+            const response = await apiClient.post(`/shipments/${shipmentId}/rating`, data);
+            return response.data;
+        },
+        onSuccess: (_, v) => {
+            queryClient.invalidateQueries({ queryKey: ['shipment', v.shipmentId.toString()] });
+            queryClient.invalidateQueries({ queryKey: ['shipment-rating', v.shipmentId.toString()] });
         }
     });
 }
@@ -515,7 +622,7 @@ export function useOpsAnalytics() {
         queryKey: ['analytics', 'ops'],
         queryFn: async () => {
             const response = await apiClient.get('/analytics/ops');
-            return response.data;
+            return response.data?.data ?? response.data;
         }
     });
 }
@@ -525,7 +632,7 @@ export function useCustomerAnalytics() {
         queryKey: ['analytics', 'customer'],
         queryFn: async () => {
             const response = await apiClient.get('/analytics/customer');
-            return response.data;
+            return response.data?.data ?? response.data;
         }
     });
 }
@@ -535,7 +642,7 @@ export function usePartnerAnalytics() {
         queryKey: ['analytics', 'partner'],
         queryFn: async () => {
             const response = await apiClient.get('/analytics/partner');
-            return response.data;
+            return response.data?.data ?? response.data;
         }
     });
 }

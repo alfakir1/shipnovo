@@ -1,0 +1,123 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - banner [ref=e13]:
+      - generic [ref=e14]:
+        - link "ShipNovo" [ref=e15] [cursor=pointer]:
+          - /url: /
+          - img "ShipNovo" [ref=e17]
+        - generic [ref=e18]:
+          - button "العربية" [ref=e19]:
+            - img [ref=e20]
+            - text: العربية
+          - link "Login" [ref=e23] [cursor=pointer]:
+            - /url: /login
+          - link "Sign Up" [ref=e24] [cursor=pointer]:
+            - /url: /signup
+    - generic [ref=e25]:
+      - img "ShipNovo Logistics" [ref=e27]
+      - generic [ref=e30]:
+        - generic [ref=e35]: Next-Gen 4PL Infrastructure
+        - heading "The Command Center for 4PL Logistics" [level=1] [ref=e36]
+        - paragraph [ref=e37]: We connect traders to a global network of carriers, warehouses, and logistics services — through a single system that gives you full control without owning a fleet.
+        - generic [ref=e38]:
+          - button "Start Shipping Now" [ref=e39]:
+            - text: Start Shipping Now
+            - img [ref=e40]
+          - link "Discover ShipNovo" [ref=e42] [cursor=pointer]:
+            - /url: "#discovery"
+    - generic [ref=e45]:
+      - img "4PL Orchestration" [ref=e49]
+      - generic [ref=e50]:
+        - heading "What is ShipNovo?" [level=2] [ref=e51]
+        - paragraph [ref=e52]: ShipNovo is an integrated Fourth-Party Logistics (4PL) platform, acting as a central orchestrator managing shipping, warehousing, clearance, and insurance operations through a network of trusted partners. Instead of dealing with dozens of companies, you get one interface to manage everything. ShipNovo doesn't just move goods... it manages the movement of trade itself.
+        - generic [ref=e53]:
+          - generic [ref=e54]: "\"ShipNovo does not move goods... it manages the movement of trade itself.\""
+          - generic [ref=e55]:
+            - img [ref=e57]
+            - generic [ref=e61]:
+              - text: 4PL Certified
+              - text: Network
+    - generic [ref=e63]:
+      - generic [ref=e64]:
+        - heading "Platform Capabilities" [level=2] [ref=e65]
+        - paragraph [ref=e66]: Everything you need to orchestrate a modern supply chain.
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - img [ref=e70]
+          - heading "Smart Freight Management" [level=3] [ref=e74]
+          - paragraph [ref=e75]: Land, Sea, and Air. Compare quotes, speed, and options to choose the optimal offer for your business.
+        - generic [ref=e76]:
+          - img [ref=e78]
+          - heading "Real-Time Tracking" [level=3] [ref=e81]
+          - paragraph [ref=e82]: Know your shipment's location at every moment with instant status notifications across all legs.
+        - generic [ref=e83]:
+          - img [ref=e85]
+          - heading "Warehousing on Demand" [level=3] [ref=e88]
+          - paragraph [ref=e89]: Access a network of warehouses for storage and fulfillment with integrated inventory management.
+        - generic [ref=e90]:
+          - img [ref=e92]
+          - heading "Customs Clearance" [level=3] [ref=e95]
+          - paragraph [ref=e96]: Accelerate procedures and manage all required documentation through our certified agent network.
+        - generic [ref=e97]:
+          - img [ref=e99]
+          - heading "Logistics Insurance" [level=3] [ref=e101]
+          - paragraph [ref=e102]: Protect your shipments and handle claims seamlessly within the platform for ultimate peace of mind.
+        - generic [ref=e103]:
+          - img [ref=e105]
+          - heading "Secure Payments" [level=3] [ref=e108]
+          - paragraph [ref=e109]: A secure financial escrow system ensures safe transfers between all parties involved in the shipment.
+    - generic [ref=e112]:
+      - generic [ref=e113]:
+        - heading "Why is ShipNovo Different?" [level=2] [ref=e114]
+        - paragraph [ref=e115]: We act as a logistics operating system, not just a broker.
+      - generic [ref=e116]:
+        - generic [ref=e117]:
+          - generic [ref=e118]: 🧠 Data Intelligence
+          - paragraph [ref=e119]: Leveraging historical data to optimize your routes and costs.
+        - generic [ref=e120]:
+          - generic [ref=e121]: 🧠 Smart Algorithms
+          - paragraph [ref=e122]: Automated matching to find the best carrier for every specific shipment.
+        - generic [ref=e123]:
+          - generic [ref=e124]: 🧠 Partner Network
+          - paragraph [ref=e125]: Access to the highest-rated logistics providers globally without the overhead.
+    - generic [ref=e128]:
+      - generic [ref=e129]:
+        - heading "Who is it for?" [level=2] [ref=e130]
+        - generic [ref=e131]:
+          - generic [ref=e134]: Traders & Corporations
+          - generic [ref=e137]: E-commerce Stores
+          - generic [ref=e140]: Factories & Suppliers
+          - generic [ref=e143]: Startups & SMEs
+          - generic [ref=e146]: Logistics & Freight Companies
+        - paragraph [ref=e147]: If you move goods... ShipNovo moves them smarter.
+      - img "Partners" [ref=e149]
+    - generic [ref=e151]:
+      - generic:
+        - img "Pattern"
+      - generic [ref=e152]:
+        - heading "Our Vision" [level=2] [ref=e153]
+        - paragraph [ref=e154]: To become the digital infrastructure for trade in the region, where any company — large or small — can access a global logistics network with the click of a button.
+    - generic [ref=e157]:
+      - heading "Start Your Smart Logistics Journey Today" [level=2] [ref=e160]
+      - paragraph [ref=e161]: Create your account now and make shipping simple, transparent, and controllable.
+      - generic [ref=e162]:
+        - link "Create Account" [ref=e163] [cursor=pointer]:
+          - /url: /signup
+        - link "Already have an account? Sign in" [ref=e164] [cursor=pointer]:
+          - /url: /login
+    - contentinfo [ref=e165]:
+      - generic [ref=e166]:
+        - img "ShipNovo" [ref=e169]
+        - generic [ref=e170]: © 2026 ShipNovo. All rights reserved.
+        - generic [ref=e171]:
+          - link "Privacy" [ref=e172] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms" [ref=e173] [cursor=pointer]:
+            - /url: "#"
+```

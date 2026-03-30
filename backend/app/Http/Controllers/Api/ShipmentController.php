@@ -56,7 +56,8 @@ class ShipmentController extends ApiController
         $this->authorize('view', $shipment);
 
         // Masking for partners if it's an RFQ they aren't assigned to
-        if ($request->user()->role === 'partner') {
+        // Admin/Ops see everything
+        if ($request->user()->role === 'partner' && !in_array($request->user()->role, ['admin', 'ops'])) {
             $isAssigned = $shipment->assignments()->whereHas('partner', function($q) use ($request) {
                 $q->where('user_id', $request->user()->id);
             })->exists();
@@ -101,10 +102,19 @@ class ShipmentController extends ApiController
         
         $this->authorize('update', $shipment);
 
-        $request->validate(['status' => 'required|string']);
+        $request->validate([
+            'status' => 'required|string|in:rfq,offers_received,offer_selected,processing,transit,at_destination,delivered,closed,cancelled'
+        ]);
         
+        // Admin/Ops can bypass strict state machine if necessary (force transition)
+        $isAdmin = in_array($request->user()->role, ['admin', 'ops']);
+
         try {
-            $shipment = ShipmentStateMachine::transition($shipment, $request->status);
+            if ($isAdmin) {
+                $shipment->update(['status' => $request->status]);
+            } else {
+                $shipment = ShipmentStateMachine::transition($shipment, $request->status);
+            }
         } catch (\Exception $e) {
             return ApiResponse::error('INVALID_TRANSITION', $e->getMessage(), [], 422);
         }
@@ -268,8 +278,20 @@ class ShipmentController extends ApiController
 
     public function getPartners(Request $request)
     {
-        // Only return verified partners for assignment
-        $partners = \App\Models\Partner::where('is_verified', true)->get();
+        $user = $request->user();
+        $isAdmin = in_array($user->role, ['admin', 'ops']);
+
+        $query = \App\Models\Partner::with('user');
+
+        if (!$isAdmin) {
+            // Only verified partners for others
+            $query->where('is_verified', true)
+                ->whereHas('user', function ($q) {
+                    $q->where('role', 'partner');
+                });
+        }
+
+        $partners = $query->get();
         return ApiResponse::ok($partners);
     }
 

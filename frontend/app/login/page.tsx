@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useI18n } from '@/components/providers/I18nProvider';
-import { Ship, Mail, Lock, ArrowRight, Eye, EyeOff, Globe } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Globe } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -58,7 +58,7 @@ export default function LoginPage() {
                         fill
                         className="object-cover opacity-20"
                     />
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, var(--brand-navy-950) 0%, var(--brand-navy-900) 100%)', opacity: 0.8 }} />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, var(--brand-navy-900) 0%, var(--navy-800) 100%)', opacity: 0.8 }} />
                 </div>
 
                 {/* Decorative elements */}
@@ -68,13 +68,15 @@ export default function LoginPage() {
                     style={{ backgroundColor: 'var(--brand-yellow-500)' }} />
 
                 {/* Logo */}
-                <div className="relative z-10 flex items-center gap-3">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg"
-                            style={{ backgroundColor: 'var(--brand-orange-500)' }}>
-                            <Ship className="h-5 w-5 text-white rtl-flip" />
-                        </div>
-                        <span className="text-2xl font-black text-white tracking-tight">ShipNovo</span>
+                <div className="relative z-10">
+                    <Link href="/" className="inline-block bg-white rounded-2xl p-3 shadow-2xl shadow-brand-navy-900/20 transform hover:-translate-y-1 transition-all">
+                        <Image
+                            src="/brand/logo.png"
+                            alt="ShipNovo"
+                            width={160}
+                            height={45}
+                            className="h-10 w-auto object-contain"
+                        />
                     </Link>
                 </div>
 
@@ -111,12 +113,16 @@ export default function LoginPage() {
 
                 <div className="w-full max-w-md">
                     {/* Mobile logo */}
-                    <div className="lg:hidden flex items-center gap-2.5 mb-10">
-                        <div className="h-9 w-9 rounded-xl flex items-center justify-center"
-                            style={{ backgroundColor: 'var(--brand-orange-500)' }}>
-                            <Ship className="h-4.5 w-4.5 text-white rtl-flip" />
+                    <div className="lg:hidden flex mb-10">
+                        <div className="bg-brand-navy-50/50 rounded-xl p-2.5 border border-brand-navy-100/50 shadow-sm">
+                            <Image
+                                src="/brand/logo.png"
+                                alt="ShipNovo"
+                                width={140}
+                                height={40}
+                                className="h-9 w-auto object-contain"
+                            />
                         </div>
-                        <span className="text-xl font-black text-foreground">ShipNovo</span>
                     </div>
 
                     <div className="mb-8">
@@ -177,13 +183,7 @@ export default function LoginPage() {
                         )}
 
                         <button type="submit" disabled={loading}
-                            className="w-full h-12 rounded-xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60 shadow-lg"
-                            style={{
-                                backgroundColor: 'var(--brand-orange-500)',
-                                boxShadow: '0 8px 24px rgba(238,112,17,0.25)'
-                            }}
-                            onMouseEnter={e => !loading && ((e.currentTarget as HTMLElement).style.backgroundColor = 'var(--brand-orange-700)')}
-                            onMouseLeave={e => !loading && ((e.currentTarget as HTMLElement).style.backgroundColor = 'var(--brand-orange-500)')}>
+                            className="w-full h-12 rounded-xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60 shadow-lg shadow-brand-orange-500/25 bg-brand-orange-500 hover:bg-brand-orange-700">
                             {loading ? (
                                 <div className="h-5 w-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (

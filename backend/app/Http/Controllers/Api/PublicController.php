@@ -12,7 +12,9 @@ class PublicController extends Controller
     public function track(string $token): JsonResponse
     {
         // Allow lookup by tracking_token (secure link) OR tracking_number (short link)
-        $shipment = Shipment::where('tracking_number', $token)->first();
+        $shipment = Shipment::where('tracking_number', $token)
+            ->orWhere('tracking_token', $token)
+            ->first();
 
         if (!$shipment) {
             return ApiResponse::error('NOT_FOUND', 'Shipment not found or invalid token', [], 404);

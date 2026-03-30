@@ -15,7 +15,7 @@ import {
 export default function ShipmentListPage() {
     const { t } = useI18n();
     const { data, isLoading } = useShipments();
-    const shipments = data?.data ?? [];
+    const shipments = Array.isArray(data) ? data : (data?.data ?? []);
 
     return (
         <div className="space-y-6 pb-12">
