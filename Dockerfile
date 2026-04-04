@@ -79,4 +79,5 @@ RUN chown -R www-data:www-data /app/backend/storage /app/backend/bootstrap/cache
 # Port configuration (Render default)
 EXPOSE 10000
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Run migrations and start Supervisor
+CMD ["sh", "-c", "php /app/backend/artisan migrate --force && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
