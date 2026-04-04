@@ -50,10 +50,7 @@ COPY . .
 WORKDIR /app/backend
 RUN composer install --no-dev --optimize-autoloader \
     && cp .env.example .env \
-    && php artisan key:generate \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+    && php artisan key:generate
 
 # Frontend build (Next.js)
 WORKDIR /app/frontend
@@ -80,4 +77,4 @@ RUN chown -R www-data:www-data /app/backend/storage /app/backend/bootstrap/cache
 EXPOSE 10000
 
 # Run migrations and start Supervisor
-CMD ["sh", "-c", "php /app/backend/artisan migrate --force && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+CMD ["sh", "-c", "php /app/backend/artisan config:clear && php /app/backend/artisan migrate --force && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
