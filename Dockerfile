@@ -65,9 +65,12 @@ WORKDIR /app
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
     && mkdir -p /run/php \
-    && sed -i 's|listen = /run/php/php8.2-fpm.sock|listen = 127.0.0.1:9000|' /etc/php/8.2/fpm/pool.d/www.conf
+    && sed -i 's|listen = /run/php/php8.2-fpm.sock|listen = 127.0.0.1:9000|' /etc/php/8.2/fpm/pool.d/www.conf \
+    && rm -f /etc/nginx/sites-available/default \
+    && rm -f /etc/nginx/sites-enabled/default
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
+RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default || true
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Permissions
