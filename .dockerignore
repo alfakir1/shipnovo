@@ -1,0 +1,14 @@
+node_modules
+vendor
+.git
+.env
+.next
+storage/*.key
+backend/storage/*.key
+backend/public/storage
+frontend/.next
+frontend/node_modules
+backend/vendor
+Dockerfile
+.dockerignore
+docker/
