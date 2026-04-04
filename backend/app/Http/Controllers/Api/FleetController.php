@@ -87,7 +87,15 @@ class FleetController extends ApiController
             return ApiResponse::error('VALIDATION_ERROR', 'Validation failed', $validator->errors()->toArray());
         }
 
-        $vehicle = $fleet->vehicles()->create($request->all());
+        $vehicle = $fleet->vehicles()->create([
+            'make' => $request->make,
+            'model' => $request->model,
+            'plate_number' => $request->plate_number,
+            'type' => $request->type,
+            'capacity_weight' => $request->capacity_weight,
+            'capacity_volume' => $request->capacity_volume,
+            'status' => 'available',
+        ]);
 
         return ApiResponse::ok($vehicle);
     }
@@ -156,10 +164,13 @@ class FleetController extends ApiController
             return ApiResponse::error('FORBIDDEN', 'Partner profile not found', [], 403);
         }
 
+        // Get all fleet IDs belonging to this partner
+        $fleetIds = Fleet::where('partner_id', $partner->id)->pluck('id');
+
         // List all drivers registered under this partner's fleets
-        $drivers = DriverProfile::whereHas('fleet', function($q) use ($partner) {
-            $q->where('partner_id', $partner->id);
-        })->with('user')->get();
+        $drivers = DriverProfile::whereIn('fleet_id', $fleetIds)
+            ->with('user')
+            ->get();
 
         return ApiResponse::ok($drivers);
     }

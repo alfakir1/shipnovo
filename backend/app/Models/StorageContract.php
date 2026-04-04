@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class StorageContract extends Model
 {
-    protected $fillable = ['warehouse_id', 'customer_id', 'start_date', 'end_date', 'status', 'pricing_model', 'rate'];
+    protected $fillable = [
+        'warehouse_id', 'customer_id', 'start_date', 'end_date', 'status', 'pricing_model', 'rate',
+        'cargo_type', 'estimated_volume', 'notes'
+    ];
 
     public function warehouse()
     {

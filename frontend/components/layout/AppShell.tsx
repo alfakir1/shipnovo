@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import AIAssistant from "@/components/ai/AIAssistant";
 import Image from 'next/image';
 
 interface NavItem {
@@ -48,7 +49,7 @@ const navItems: NavItem[] = [
     { labelKey: 'common.invoices', href: '/invoices', icon: Wallet, roles: ['admin', 'ops', 'customer'] },
     { labelKey: 'common.pricing', href: '/pricing', icon: CreditCard, roles: ['admin', 'ops', 'customer'] },
     { labelKey: 'common.warehouses', href: '/partner/warehouses', icon: Warehouse, roles: ['partner'] },
-    { labelKey: 'common.fleet', href: '/partner/fleet', icon: Truck, roles: ['partner'] },
+    { labelKey: 'common.fleet.title', href: '/partner/fleet', icon: Truck, roles: ['partner'] },
     { labelKey: 'common.inventory', href: '/customer/inventory', icon: Boxes, roles: ['customer'] },
 ];
 
@@ -189,7 +190,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                                 const segment = pathname?.split('/').filter(Boolean).slice(-1)[0];
                                 if (!segment) return t('common.dashboard');
                                 if (!isNaN(Number(segment))) return `Shipment #${segment}`;
-                                return t(`common.${segment}`) || segment;
+                                const label = t(`common.${segment}`);
+                                return typeof label === 'string' && !label.includes('.') ? label : segment;
                             })()}
                         </span>
                     </div>
@@ -263,6 +265,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
                 </div>
             )}
+            <AIAssistant />
         </div>
     );
 }

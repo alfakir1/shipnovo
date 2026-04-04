@@ -9,4 +9,4 @@ ShipNovo is a 4PL (Fourth-Party Logistics) platform designed to orchestrate the 
 4. **Data-Driven Intelligence**: Using AI for route optimization and predictive ETAs.
 
 ## MVP Goal:
-Create a high-impact, demonstration-ready prototype that showcases the core flow of a 4PL operation: Shippers booking, Ops orchestrating, and Partners executing.
+Create a high-impact, demonstration-ready prototype that showcases the core flow of a 4PL operation: Shippers booking, Ops orchestrating, and Partners executing. The platform operates in Yemen, focusing on shipments arriving to Yemen.

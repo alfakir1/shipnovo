@@ -58,6 +58,14 @@ class ShipmentEngine
             // Ensure customer_id mapping if not provied (customer creating for self)
             $customerId = ($creator->role === 'customer') ? $creator->id : ($data['customer_id'] ?? $creator->id);
 
+            $customerPrice = $data['customer_price'] ?? null;
+            if (isset($data['package_id'])) {
+                $pkg = \App\Models\PricingPackage::find($data['package_id']);
+                if ($pkg) {
+                    $customerPrice = $pkg->price;
+                }
+            }
+
             $shipment = Shipment::create([
                 'tracking_token' => 'TKN-' . strtoupper(Str::random(16)),
                 'tracking_number' => 'SNV-' . strtoupper(Str::random(8)),
@@ -68,7 +76,7 @@ class ShipmentEngine
                 'destination' => $data['destination'],
                 'mode' => $data['mode'] ?? 'sea',
                 'service_type' => $data['service_type'] ?? 'standard',
-                'customer_price' => $data['customer_price'] ?? null,
+                'customer_price' => $customerPrice,
                 'description' => $data['description'] ?? null,
                 'total_weight' => $data['total_weight'] ?? null,
                 'weight_unit' => $data['weight_unit'] ?? 'kg',
@@ -77,6 +85,9 @@ class ShipmentEngine
                 'internal_value' => $data['internal_value'] ?? null,
                 'pallet_count' => $data['pallet_count'] ?? 1,
                 'pickup_date' => $data['pickup_date'] ?? null,
+                'package_id' => $data['package_id'] ?? null,
+                'needs_storage' => $data['needs_storage'] ?? false,
+                'warehouse_id' => $data['warehouse_id'] ?? null,
             ]);
 
             $adminsAndOps = User::whereIn('role', ['admin', 'ops'])->get();

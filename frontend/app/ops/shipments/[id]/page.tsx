@@ -2,7 +2,7 @@
 
 import { useShipment, useUpdateShipment, useAddEvent, usePartners, useAssignPartner } from "@/hooks/useShipments";
 import { useParams } from "next/navigation";
-import { Package, ArrowRight, MapPin, FileText, UserPlus, Send, Download, X, Truck, Shield, Plus } from "lucide-react";
+import { Package, ArrowRight, MapPin, FileText, UserPlus, Send, Download, X, Truck, Shield, Plus, CheckCircle, AlertCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge, statusVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,20 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { useState } from "react";
+import apiClient from "@/lib/api-client";
+
+// All canonical statuses visible to ops (admin bypass — any transition allowed)
+const CANONICAL_STATUSES = [
+    { value: 'rfq', labelKey: 'status.rfq', fallback: 'RFQ' },
+    { value: 'offers_received', labelKey: 'status.offers_received', fallback: 'Offers Received' },
+    { value: 'offer_selected', labelKey: 'status.offer_selected', fallback: 'Offer Selected' },
+    { value: 'processing', labelKey: 'status.processing', fallback: 'Processing' },
+    { value: 'transit', labelKey: 'status.transit', fallback: 'In Transit' },
+    { value: 'at_destination', labelKey: 'status.at_destination', fallback: 'At Destination' },
+    { value: 'delivered', labelKey: 'status.delivered', fallback: 'Delivered' },
+    { value: 'closed', labelKey: 'status.closed', fallback: 'Closed' },
+    { value: 'cancelled', labelKey: 'status.cancelled', fallback: 'Cancelled' },
+];
 
 export default function OpsShipmentDetailPage() {
     const { id } = useParams() as { id: string };
@@ -21,8 +35,14 @@ export default function OpsShipmentDetailPage() {
     const assignPartner = useAssignPartner();
     const { t } = useI18n();
 
-    const [statusForm, setStatusForm] = useState({ status: 'customs', description: '' });
+    const [statusForm, setStatusForm] = useState({ status: 'processing', description: '' });
     const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
+    const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+    const showToast = (type: 'success' | 'error', msg: string) => {
+        setToast({ type, msg });
+        setTimeout(() => setToast(null), 4000);
+    };
 
     const handleUpdateStatus = async () => {
         try {
@@ -39,8 +59,23 @@ export default function OpsShipmentDetailPage() {
                 }
             });
 
-            setStatusForm({ status: 'customs', description: '' });
-        } catch (err) { console.error(err); }
+            showToast('success', 'Status updated successfully');
+            setStatusForm({ status: 'processing', description: '' });
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } }; message?: string };
+            const msg = e?.response?.data?.message || e?.message || 'Failed to update status';
+            showToast('error', msg);
+        }
+    };
+
+    const handleDownloadDoc = (docId: number) => {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/documents/${docId}/download`;
+        // Open in new tab with auth header workaround via anchor
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.click();
     };
 
     if (isLoading) return <div className="space-y-5"><Skeleton className="h-28 rounded-xl" /><Skeleton className="h-12 w-80 rounded-lg" /><Skeleton className="h-64 rounded-xl" /></div>;
@@ -48,6 +83,14 @@ export default function OpsShipmentDetailPage() {
 
     return (
         <div className="space-y-6 pb-12">
+            {/* Toast */}
+            {toast && (
+                <div className={`fixed top-5 right-5 z-[100] flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border text-sm font-bold animate-in slide-in-from-top-2 duration-300 ${toast.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                    {toast.type === 'success' ? <CheckCircle className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                    {toast.msg}
+                </div>
+            )}
+
             {/* Hero */}
             <div className="bg-card rounded-xl border border-border shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -159,13 +202,15 @@ export default function OpsShipmentDetailPage() {
                         <div className="p-5 border-b border-border"><h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('common.documents')}</h3></div>
                         {(shipment?.documents?.length ?? 0) > 0 ? (
                             <div className="divide-y divide-border">
-                                {shipment.documents?.map((doc: any) => (
+                                {shipment.documents?.map((doc: { id: number; name?: string; type?: string; file_path?: string }) => (
                                     <div key={doc.id} className="flex items-center justify-between px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <FileText className="h-5 w-5" style={{ color: 'var(--brand-navy-500)' }} />
                                             <p className="text-sm font-bold text-foreground">{doc.name ?? doc.type}</p>
                                         </div>
-                                        <Button variant="ghost" size="sm" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" /> {t('common.download')}</Button>
+                                        <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => handleDownloadDoc(doc.id)}>
+                                            <Download className="h-3.5 w-3.5" /> {t('common.download')}
+                                        </Button>
                                     </div>
                                 ))}
                             </div>
@@ -188,11 +233,9 @@ export default function OpsShipmentDetailPage() {
                                     value={statusForm.status}
                                     onChange={e => setStatusForm(prev => ({ ...prev, status: e.target.value }))}
                                     className="w-full h-10 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 transition-all">
-                                    <option value="processing">{t('status.processing') || 'Processing'}</option>
-                                    <option value="customs">{t('status.customs')}</option>
-                                    <option value="at_destination">{t('status.at_destination')}</option>
-                                    <option value="transit">{t('status.transit')}</option>
-                                    <option value="delivered">{t('status.delivered')}</option>
+                                    {CANONICAL_STATUSES.map(s => (
+                                        <option key={s.value} value={s.value}>{t(s.labelKey) || s.fallback}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div>

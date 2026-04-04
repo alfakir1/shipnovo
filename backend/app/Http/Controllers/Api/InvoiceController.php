@@ -12,7 +12,10 @@ class InvoiceController extends ApiController
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Invoice::with(['shipment' => fn($q) => $q->select('id', 'tracking_number', 'origin', 'destination', 'status')]);
+        $query = Invoice::with([
+            'shipment' => fn($q) => $q->select('id', 'tracking_number', 'origin', 'destination', 'status', 'customer_id', 'total_weight', 'weight_unit', 'service_type', 'mode'),
+            'shipment.customer' => fn($q) => $q->select('id', 'name', 'company_name', 'email')
+        ]);
 
         if ($user->role === 'customer') {
             $query->whereHas('shipment', function ($q) use ($user) {
@@ -100,5 +103,31 @@ class InvoiceController extends ApiController
 
             return ApiResponse::ok($invoice->fresh());
         });
+    }
+
+    public function stats(Request $request)
+    {
+        $user = $request->user();
+        $query = Invoice::query();
+
+        if ($user->role === 'customer') {
+            $query->whereHas('shipment', function ($q) use ($user) {
+                $q->where('customer_id', $user->id);
+            });
+        } elseif ($user->role === 'partner') {
+            return ApiResponse::ok([
+                'total_receivables' => 0,
+                'pending_approval' => 0,
+                'late_overdue' => 0,
+            ]);
+        }
+
+        $allInvoices = $query->get();
+
+        return ApiResponse::ok([
+            'total_receivables' => $allInvoices->where('status', '!=', 'paid')->sum('amount'),
+            'pending_approval' => $allInvoices->where('status', 'pending')->sum('amount'),
+            'late_overdue' => $allInvoices->where('status', 'overdue')->sum('amount'),
+        ]);
     }
 }

@@ -23,16 +23,29 @@ export default function PartnerJobDetailPage() {
 
     const handleAddEvent = async () => {
         try {
+            // Backend requires a description, provide fallback if empty
+            const defaultDesc = t(`status.${eventForm.status}`) || eventForm.status.replace('_', ' ');
+            
             await addEvent.mutateAsync({
                 shipmentId: id,
                 data: {
                     status_code: eventForm.status,
-                    description: eventForm.description,
+                    description: eventForm.description.trim() || `Status updated: ${defaultDesc}`,
                     location: job?.origin?.split(',')[0] || ''
                 }
             });
             setEventForm({ status: 'transit', description: '' });
-        } catch (err) { console.error(err); }
+            // Optional basic feedback
+            if (typeof window !== 'undefined') {
+                alert(t('common.success') || 'Status successfully updated');
+            }
+        } catch (err: any) { 
+            console.error(err); 
+            if (typeof window !== 'undefined') {
+                const errorMsg = err?.message || err?.response?.data?.message || t('common.error') || 'Error updating status';
+                alert(errorMsg);
+            }
+        }
     };
 
     if (isLoading) return <div className="space-y-5"><Skeleton className="h-28 rounded-xl" /><Skeleton className="h-11 w-80 rounded-lg" /><Skeleton className="h-64 rounded-xl" /></div>;

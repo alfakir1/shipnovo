@@ -116,6 +116,8 @@ export interface Warehouse {
     status: string;
     total_capacity: number;
     available_capacity: number;
+    used_capacity: number;
+    partner?: Partner;
 }
 
 export interface InventoryItem {
@@ -123,7 +125,10 @@ export interface InventoryItem {
     sku: string;
     name: string;
     quantity: number;
-    volume_per_unit: number;
+    warehouse_id: number;
+    weight_per_unit?: number;
+    volume_per_unit?: number;
+    customer_id?: number;
     customer?: {
         name: string;
     };
@@ -384,6 +389,17 @@ export function usePayInvoice() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
+            queryClient.invalidateQueries({ queryKey: ['invoice-stats'] });
+        }
+    });
+}
+
+export function useInvoiceStats() {
+    return useQuery({
+        queryKey: ['invoice-stats'],
+        queryFn: async () => {
+            const response = await apiClient.get('/invoices/stats');
+            return response.data?.data ?? response.data;
         }
     });
 }
@@ -564,22 +580,6 @@ export function useAuditLogs() {
     });
 }
 
-export interface Warehouse {
-    id: number;
-    name: string;
-    location: string;
-    capacity: number;
-    used_capacity: number;
-}
-
-export interface InventoryItem {
-    id: number;
-    sku: string;
-    name: string;
-    quantity: number;
-    warehouse_id: number;
-}
-
 /* ─── P1: Warehouse Management ─── */
 export function useWarehouses() {
     return useQuery<Warehouse[]>({
@@ -603,11 +603,115 @@ export function useWarehouseInventory(id: string | number | null) {
     });
 }
 
+export function useRequestStorage() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: { warehouse_id: number, start_date: string, pricing_model: string, rate: number }) => {
+            const response = await apiClient.post('/warehouses/storage-request', data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+            queryClient.invalidateQueries({ queryKey: ['storage-contracts'] });
+        }
+    });
+}
+
+export function useStorageContracts() {
+    return useQuery({
+        queryKey: ['storage-contracts'],
+        queryFn: async () => {
+            const response = await apiClient.get('/warehouses/storage-contracts');
+            return response.data;
+        }
+    });
+}
+
+export function useUpdateStorageContract() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, action }: { id: number, action: 'approve' | 'reject' }) => {
+            const response = await apiClient.patch(`/warehouses/storage-contracts/${id}/${action}`);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['storage-contracts'] });
+            queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+        }
+    });
+}
+
+export function useUpdateStorageRequest() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, data }: { id: number, data: Record<string, unknown> }) => {
+            const response = await apiClient.patch(`/warehouses/storage-request/${id}`, data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['storage-contracts'] });
+        }
+    });
+}
+
+export function useDeleteStorageRequest() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: number) => {
+            const response = await apiClient.delete(`/warehouses/storage-request/${id}`);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['storage-contracts'] });
+        }
+    });
+}
+
 export function useCreateWarehouse() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: Record<string, unknown>) => {
             const response = await apiClient.post('/warehouses', data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+        }
+    });
+}
+
+export function useLogInventory() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ warehouseId, data }: { warehouseId: number, data: Record<string, unknown> }) => {
+            const response = await apiClient.post(`/warehouses/${warehouseId}/inventory`, data);
+            return response.data;
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['warehouses', variables.warehouseId, 'inventory'] });
+            queryClient.invalidateQueries({ queryKey: ['warehouses'] }); // Refetch capacity info
+        }
+    });
+}
+
+export function useUpdateWarehouse() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, data }: { id: number, data: Record<string, unknown> }) => {
+            const response = await apiClient.patch(`/warehouses/${id}`, data);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+        }
+    });
+}
+
+export function useDeleteWarehouse() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: number) => {
+            const response = await apiClient.delete(`/warehouses/${id}`);
             return response.data;
         },
         onSuccess: () => {
@@ -653,7 +757,7 @@ export function useFleets() {
         queryKey: ['fleets'],
         queryFn: async () => {
             const response = await apiClient.get('/fleets');
-            return response.data;
+            return response.data?.data ?? response.data ?? [];
         }
     });
 }
@@ -677,7 +781,7 @@ export function useFleetVehicles(fleetId: string | number | null) {
         queryFn: async () => {
             if (!fleetId) return null;
             const response = await apiClient.get(`/fleets/${fleetId}/vehicles`);
-            return response.data;
+            return response.data?.data ?? response.data ?? [];
         },
         enabled: !!fleetId
     });
@@ -691,7 +795,9 @@ export function useAddVehicle() {
             return response.data;
         },
         onSuccess: (_, v) => {
-            queryClient.invalidateQueries({ queryKey: ['fleets', v.fleetId.toString(), 'vehicles'] });
+            // Invalidate with both number and string to be safe
+            queryClient.invalidateQueries({ queryKey: ['fleets', v.fleetId, 'vehicles'] });
+            queryClient.invalidateQueries({ queryKey: ['fleets'] });
         }
     });
 }
@@ -701,7 +807,7 @@ export function useDrivers() {
         queryKey: ['drivers'],
         queryFn: async () => {
             const response = await apiClient.get('/drivers');
-            return response.data;
+            return response.data?.data ?? response.data ?? [];
         }
     });
 }

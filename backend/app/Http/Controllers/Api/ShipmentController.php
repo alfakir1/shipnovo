@@ -88,8 +88,11 @@ class ShipmentController extends ApiController
             'pallet_count' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'customer_id' => 'nullable|exists:users,id',
+            'package_id' => 'nullable|exists:pricing_packages,id',
             'status' => 'nullable|string',
             'pickup_date' => 'nullable|date',
+            'needs_storage' => 'nullable|boolean',
+            'warehouse_id' => 'nullable|exists:warehouses,id',
         ]);
 
         $shipment = $this->shipmentEngine->create($request->all(), $request->user());
@@ -102,16 +105,25 @@ class ShipmentController extends ApiController
         
         $this->authorize('update', $shipment);
 
+        $validStatuses = ShipmentStateMachine::getCanonicalStatuses();
+
         $request->validate([
-            'status' => 'required|string|in:rfq,offers_received,offer_selected,processing,transit,at_destination,delivered,closed,cancelled'
+            'status' => ['required', 'string', \Illuminate\Validation\Rule::in($validStatuses)],
+            'package_id' => 'nullable|exists:pricing_packages,id',
+            'needs_storage' => 'nullable|boolean',
+            'warehouse_id' => 'nullable|exists:warehouses,id',
         ]);
         
-        // Admin/Ops can bypass strict state machine if necessary (force transition)
+        // Admin/Ops can bypass strict state machine (force transition)
         $isAdmin = in_array($request->user()->role, ['admin', 'ops']);
 
         try {
             if ($isAdmin) {
-                $shipment->update(['status' => $request->status]);
+                $updateData = ['status' => $request->status];
+                if ($request->has('package_id')) {
+                    $updateData['package_id'] = $request->package_id;
+                }
+                $shipment->update($updateData);
             } else {
                 $shipment = ShipmentStateMachine::transition($shipment, $request->status);
             }
@@ -119,7 +131,7 @@ class ShipmentController extends ApiController
             return ApiResponse::error('INVALID_TRANSITION', $e->getMessage(), [], 422);
         }
         
-        return ApiResponse::ok($shipment);
+        return ApiResponse::ok($shipment->fresh());
     }
 
     public function quotes(Request $request)
@@ -181,9 +193,23 @@ class ShipmentController extends ApiController
 
         $event = $this->trackingService->addEvent($shipment, $request->all(), $request->user()->id);
         
-        // Auto-transition from processing to transit on first event
-        if ($shipment->status === 'processing') {
-            ShipmentStateMachine::transition($shipment, ShipmentStateMachine::STATUS_TRANSIT);
+        // Auto-transition based on event status_code
+        $targetStatus = $request->status_code;
+        if (ShipmentStateMachine::isCanonicalStatus($targetStatus)) {
+            $isAdmin = in_array($request->user()->role, ['admin', 'ops']);
+            try {
+                if ($isAdmin) {
+                    $shipment->update(['status' => ShipmentStateMachine::normalizeStatus($targetStatus)]);
+                } else {
+                    // Standard transition check for partners/others
+                    if (ShipmentStateMachine::canTransition($shipment, $targetStatus)) {
+                        ShipmentStateMachine::transition($shipment, $targetStatus);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Silently fail status update if it's an automated transition (the event is still logged)
+                \Log::warning("Automated status transition failed for shipment {$shipment->id} to {$targetStatus}: " . $e->getMessage());
+            }
         }
 
         return ApiResponse::created(new TrackingEventResource($event));
@@ -214,7 +240,7 @@ class ShipmentController extends ApiController
     {
         $document = Document::with('shipment')->findOrFail($id);
         $this->authorize('viewDocuments', $document->shipment);
-        return Storage::disk('public')->download($document->file_path);
+        return response()->download(storage_path('app/public/' . ltrim($document->file_path, '/')));
     }
 
     public function getTickets($id, Request $request)
@@ -281,7 +307,7 @@ class ShipmentController extends ApiController
         $user = $request->user();
         $isAdmin = in_array($user->role, ['admin', 'ops']);
 
-        $query = \App\Models\Partner::with('user');
+        $query = Partner::with('user');
 
         if (!$isAdmin) {
             // Only verified partners for others

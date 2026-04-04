@@ -1,7 +1,7 @@
 'use client';
 
-import { useShipments, usePartners, useAuditLogs, useOpsAnalytics, Shipment } from "@/hooks/useShipments";
-import { Package, Activity, AlertTriangle, ArrowRight, Clock, ShieldCheck, DollarSign } from "lucide-react";
+import { useShipments, usePartners, useAuditLogs, useOpsAnalytics, useStorageContracts, useUpdateStorageContract, Shipment } from "@/hooks/useShipments";
+import { Package, Activity, AlertTriangle, ArrowRight, Clock, ShieldCheck, DollarSign, Check, X as CloseIcon, Warehouse } from "lucide-react";
 import Link from "next/link";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,11 @@ export default function OpsDashboard() {
     const { data: shipmentsData, isLoading: loadingS } = useShipments();
     const { data: partnersData, isLoading: loadingP } = usePartners();
     const { data: auditLogs, isLoading: loadingAudit } = useAuditLogs();
+    const { data: contractsData, isLoading: loadingC } = useStorageContracts();
+    const updateContract = useUpdateStorageContract();
+
+    const contracts = Array.isArray(contractsData) ? contractsData : [];
+    const pendingContracts = contracts.filter((c: any) => c.status === 'pending');
 
     const shipments = Array.isArray(shipmentsData) ? shipmentsData : ((shipmentsData as any)?.data ?? []);
     const partners = Array.isArray(partnersData) ? partnersData : ((partnersData as any)?.data ?? []);
@@ -133,6 +138,80 @@ export default function OpsDashboard() {
                         </div>
                     ) : (
                         <EmptyState title={t('partner.dashboard.noJobs')} description={t('partner.dashboard.noJobsDesc')} className="py-12" />
+                    )}
+                </div>
+
+                {/* Storage Requests Queue */}
+                <div className="lg:col-span-3 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
+                        <div className="flex items-center gap-2">
+                            <Warehouse className="h-4 w-4 text-brand-orange-500" />
+                            <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{t('ops.dashboard.storageRequests')}</h2>
+                        </div>
+                        <Badge variant="pending" className="font-black">{pendingContracts.length}</Badge>
+                    </div>
+                    {loadingC ? (
+                        <div className="p-6 space-y-4">
+                            {[1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
+                        </div>
+                    ) : pendingContracts.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border">
+                                    <tr>
+                                        <th className="px-6 py-3">Facility</th>
+                                        <th className="px-6 py-3">Customer</th>
+                                        <th className="px-6 py-3">Volume</th>
+                                        <th className="px-6 py-3">Request Date</th>
+                                        <th className="px-6 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border">
+                                    {pendingContracts.map((contract: any) => (
+                                        <tr key={contract.id} className="hover:bg-muted/30 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold text-foreground">{contract.warehouse?.name}</div>
+                                                <div className="text-[10px] text-muted-foreground uppercase">{contract.warehouse?.location}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold">{contract.customer?.name}</div>
+                                                <div className="text-[10px] text-muted-foreground">{contract.customer?.email}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-mono font-bold text-brand-orange-600">{contract.estimated_volume} m³</div>
+                                                <div className="text-[10px] text-muted-foreground uppercase">{contract.cargo_type}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-muted-foreground">
+                                                {new Date(contract.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 space-x-2 text-right">
+                                                <button 
+                                                    onClick={() => updateContract.mutate({ id: contract.id, action: 'approve' })}
+                                                    disabled={updateContract.isPending}
+                                                    className="p-2 bg-brand-navy-50 text-brand-navy-600 hover:bg-brand-navy-100 rounded-lg transition-colors"
+                                                    title="Approve"
+                                                >
+                                                    <Check className="h-4 w-4" />
+                                                </button>
+                                                <button 
+                                                    onClick={() => updateContract.mutate({ id: contract.id, action: 'reject' })}
+                                                    disabled={updateContract.isPending}
+                                                    className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                                    title="Reject"
+                                                >
+                                                    <CloseIcon className="h-4 w-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="py-12 flex flex-col items-center justify-center text-center opacity-60">
+                            <Check className="h-8 w-8 text-muted-foreground/40 mb-2" />
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('ops.dashboard.noStorageRequests')}</p>
+                        </div>
                     )}
                 </div>
 

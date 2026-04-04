@@ -17,6 +17,32 @@ class ShipmentStateMachine
     const STATUS_CLOSED = 'closed';
     const STATUS_CANCELLED = 'cancelled';
 
+    /**
+     * List of all official statuses that represent a shipment's main state.
+     */
+    public static function getCanonicalStatuses(): array
+    {
+        return [
+            self::STATUS_RFQ,
+            self::STATUS_OFFERS_RECEIVED,
+            self::STATUS_OFFER_SELECTED,
+            self::STATUS_PROCESSING,
+            self::STATUS_TRANSIT,
+            self::STATUS_AT_DESTINATION,
+            self::STATUS_DELIVERED,
+            self::STATUS_CLOSED,
+            self::STATUS_CANCELLED,
+        ];
+    }
+
+    /**
+     * Check if a status is a canonical main status.
+     */
+    public static function isCanonicalStatus(string $status): bool
+    {
+        return in_array(self::normalizeStatus($status), self::getCanonicalStatuses());
+    }
+
     // Legacy support mapping
     protected static $legacyMap = [
         'pending' => self::STATUS_RFQ,

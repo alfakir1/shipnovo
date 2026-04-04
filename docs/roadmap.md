@@ -1,7 +1,7 @@
 # ShipNovo Roadmap
 
 ## Phase 1: MVP (Current)
-- Core workflow: China -> Saudi Arabia.
+- Core workflow: China -> Yemen.
 - Static role-based dashboards.
 - Manual tracking events.
 - Local document storage.

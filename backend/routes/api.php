@@ -11,9 +11,11 @@ use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\InvoicePdfController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\PricingController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\AiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -77,22 +79,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/shipments/{id}/rating', [RatingController::class, 'store']);
 
     // Chat System (Replaces Old Tickets)
-    Route::get('/shipments/{id}/chat', [\App\Http\Controllers\Api\TicketController::class, 'getChat']);
-    Route::post('/shipments/{id}/chat', [\App\Http\Controllers\Api\TicketController::class, 'postChat']);
-    Route::get('/tickets/{id}', [\App\Http\Controllers\Api\TicketController::class, 'show']);
+    Route::get('/shipments/{id}/chat', [TicketController::class, 'getChat']);
+    Route::post('/shipments/{id}/chat', [TicketController::class, 'postChat']);
+    Route::get('/tickets/{id}', [TicketController::class, 'show']);
 
     // Billing (P0/P1.5)
     Route::get('/shipments/{shipment}/invoice', [ShipmentController::class, 'getInvoice']);
     Route::post('/shipments/{shipment}/invoice', [ShipmentController::class, 'generateInvoice']);
-    Route::post('/payments/webhook', [PaymentController::class, 'webhook'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+    Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 
     // Global Endpoints
     Route::get('/documents', [DocumentController::class, 'index']);
     Route::post('/documents', [DocumentController::class, 'store']);
     Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
     Route::get('/invoices', [InvoiceController::class, 'index']);
+    Route::get('/invoices/stats', [InvoiceController::class, 'stats']);
     Route::post('/invoices', [InvoiceController::class, 'store']);
     Route::post('/invoices/{id}/pay', [InvoiceController::class, 'pay']);
+    Route::get('/invoices/{id}/pdf', [InvoicePdfController::class, 'stream']);
+    Route::get('/invoices/{id}/pdf/download', [InvoicePdfController::class, 'download']);
     Route::get('/pricing', [PricingController::class, 'index']);
     Route::post('/pricing', [PricingController::class, 'store']);
     Route::patch('/pricing/{id}', [PricingController::class, 'update']);
@@ -104,10 +109,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // Warehouse Management (P1)
     Route::get('/warehouses', [\App\Http\Controllers\Api\WarehouseController::class, 'index']);
     Route::post('/warehouses', [\App\Http\Controllers\Api\WarehouseController::class, 'store']);
+    Route::patch('/warehouses/{id}', [\App\Http\Controllers\Api\WarehouseController::class, 'update']);
+    Route::delete('/warehouses/{id}', [\App\Http\Controllers\Api\WarehouseController::class, 'destroy']);
     Route::get('/warehouses/{id}/inventory', [\App\Http\Controllers\Api\WarehouseController::class, 'inventory']);
     Route::post('/warehouses/{id}/inventory', [\App\Http\Controllers\Api\WarehouseController::class, 'logInventory']);
     Route::delete('/warehouses/{id}/inventory/{itemId}', [\App\Http\Controllers\Api\WarehouseController::class, 'deleteInventoryItem']);
+    Route::get('/warehouses/storage-contracts', [\App\Http\Controllers\Api\WarehouseController::class, 'contracts']);
     Route::post('/warehouses/storage-request', [\App\Http\Controllers\Api\WarehouseController::class, 'requestStorage']);
+    Route::patch('/warehouses/storage-request/{id}', [\App\Http\Controllers\Api\WarehouseController::class, 'updateStorageRequest']);
+    Route::delete('/warehouses/storage-request/{id}', [\App\Http\Controllers\Api\WarehouseController::class, 'deleteStorageRequest']);
+    Route::patch('/warehouses/storage-contracts/{id}/approve', [\App\Http\Controllers\Api\WarehouseController::class, 'approveContract']);
+    Route::patch('/warehouses/storage-contracts/{id}/reject', [\App\Http\Controllers\Api\WarehouseController::class, 'rejectContract']);
     // ... other warehouse routes
 
     // Analytics (P1.5)
@@ -121,6 +133,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/fleets/{id}/vehicles', [\App\Http\Controllers\Api\FleetController::class, 'vehicles']);
     Route::post('/fleets/{id}/vehicles', [\App\Http\Controllers\Api\FleetController::class, 'addVehicle']);
     Route::get('/drivers', [\App\Http\Controllers\Api\FleetController::class, 'drivers']);
+    Route::post('/fleets/{id}/drivers', [\App\Http\Controllers\Api\FleetController::class, 'addDriver']);
+    Route::post('/shipments/{id}/assign-driver', [\App\Http\Controllers\Api\FleetController::class, 'assignToShipment']);
 
     // Audit Logs
     Route::get('/audit-logs', [ShipmentController::class, 'getAuditLogs']);
@@ -129,6 +143,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
+    // AI Assistant
+    Route::post('/ai/chat', [AiController::class, 'chat']);
 
     // Partners (Existing)
     Route::get('/partners', [ShipmentController::class, 'getPartners']);

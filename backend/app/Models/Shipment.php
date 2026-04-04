@@ -36,6 +36,8 @@ class Shipment extends Model
         'internal_value',
         'pallet_count',
         'pickup_date',
+        'needs_storage',
+        'warehouse_id',
     ];
 
     protected $appends = ['has_return_request'];
@@ -113,6 +115,11 @@ class Shipment extends Model
     public function workOrder()
     {
         return $this->hasOne(WorkOrder::class);
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     protected static function boot()

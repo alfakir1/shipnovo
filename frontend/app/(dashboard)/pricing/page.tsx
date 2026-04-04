@@ -7,6 +7,7 @@ import { Search, ArrowRight, Package, DollarSign, Globe } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/components/providers/AuthProvider';
 import Link from 'next/link';
+import { NewPackageModal } from '@/components/pricing/NewPackageModal';
 
 export default function PricingPage() {
     const { t } = useI18n();
@@ -16,6 +17,7 @@ export default function PricingPage() {
 
     const [weight, setWeight] = useState('');
     const [origin, setOrigin] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const filteredPackages = packages.filter((pkg: any) => {
         const w = parseFloat(weight);
@@ -145,12 +147,15 @@ export default function PricingPage() {
                     <p className="text-sm text-muted-foreground max-w-sm mb-6">Create new system or partner pricing packages for customers.</p>
                     <button 
                         type="button" 
+                        onClick={() => setIsModalOpen(true)}
                         className="px-8 py-3 bg-card border border-border rounded-xl text-xs font-black uppercase tracking-widest text-foreground hover:bg-muted/50 transition-all"
                     >
                         + Create New Package
                     </button>
                 </div>
             )}
+
+            <NewPackageModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
     );
 }

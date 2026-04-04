@@ -18,12 +18,25 @@ const TabsContext = React.createContext<TabsContextValue>({
 })
 
 // Override: simple controlled version that reads defaultValue
-interface TabsRootProps extends React.HTMLAttributes<HTMLDivElement> {
+interface TabsRootProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'> {
     defaultValue?: string
+    value?: string
+    onValueChange?: (value: string) => void
 }
 
-function TabsRoot({ children, defaultValue, className, ...props }: TabsRootProps) {
-    const [activeTab, setActiveTab] = React.useState<string>(defaultValue ?? "")
+function TabsRoot({ children, defaultValue, value, onValueChange, className, ...props }: TabsRootProps) {
+    const [internalActiveTab, setInternalActiveTab] = React.useState<string>(defaultValue ?? "")
+    
+    const activeTab = value !== undefined ? value : internalActiveTab
+    const setActiveTab = (v: string) => {
+        if (value === undefined) {
+            setInternalActiveTab(v)
+        }
+        if (onValueChange) {
+            onValueChange(v)
+        }
+    }
+
     const firstValue = React.useRef<string | null>(null)
     const initialized = React.useRef(true)
     return (

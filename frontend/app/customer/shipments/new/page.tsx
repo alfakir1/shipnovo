@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCreateShipment, useQuotes, SimulatedQuote } from "@/hooks/useShipments";
+import { useCreateShipment, useQuotes, SimulatedQuote, usePricing, useStorageContracts } from "@/hooks/useShipments";
 import { ArrowRight, ArrowLeft, Package, MapPin, Ship, Truck, Plane, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,12 +26,29 @@ export default function NewShipmentPage() {
         internal_value: '',
         pallet_count: '1',
         pickup_date: '',
+        package_id: '',
+        needs_storage: false,
+        warehouse_id: '',
     });
-    const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-        setForm(p => ({ ...p, [k]: e.target.value }));
+    const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+        setForm(p => ({ ...p, [k]: value }));
+    };
 
     const { data: quotesData } = useQuotes({ origin: form.origin, destination: form.destination });
     const quotes = quotesData ?? [];
+
+    const { data: pricingData } = usePricing();
+    const { data: contractsData } = useStorageContracts();
+    const packages = Array.isArray(pricingData) ? pricingData : (pricingData?.data ?? []);
+    const contracts = Array.isArray(contractsData) ? contractsData : [];
+    const activeContracts = contracts.filter((c: any) => c.status === 'active');
+    
+    // Filter packages matching origin/destination logic
+    const matchedPackages = packages.filter((pkg: any) => 
+        (pkg.origin.toLowerCase().includes(form.origin.toLowerCase()) || form.origin.toLowerCase().includes(pkg.origin.toLowerCase())) &&
+        (pkg.destination.toLowerCase().includes(form.destination.toLowerCase()) || form.destination.toLowerCase().includes(pkg.destination.toLowerCase()))
+    );
 
     const fieldClass = "w-full h-10 px-3 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-all";
     const labelClass = "text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block";
@@ -50,8 +67,8 @@ export default function NewShipmentPage() {
             ['total_weight', 'volume', 'customer_price', 'internal_value', 'pallet_count'].forEach(key => {
                 const k = key as keyof typeof form;
                 const val = sanitizedForm[k];
-                if (val === '') (sanitizedForm as Record<string, string | number | null>)[k] = null;
-                else if (typeof val === 'string') (sanitizedForm as Record<string, string | number | null>)[k] = parseFloat(val.replace(/,/g, ''));
+                if (val === '') (sanitizedForm as Record<string, string | number | boolean | null>)[k] = null;
+                else if (typeof val === 'string') (sanitizedForm as Record<string, string | number | boolean | null>)[k] = parseFloat(val.replace(/,/g, ''));
             });
 
             const res = await createShipment.mutateAsync(sanitizedForm);
@@ -141,8 +158,14 @@ export default function NewShipmentPage() {
                                 <label className={labelClass}>{t('shipments.origin')}</label>
                                 <div className="relative">
                                     <MapPin className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <input value={form.origin} onChange={set('origin')} placeholder="e.g. Shanghai, China"
-                                        className={cn(fieldClass, "ps-9", fieldErrors.origin && "border-destructive focus:ring-destructive/20")} />
+                                    <select value={form.origin} onChange={set('origin')}
+                                        className={cn(fieldClass, "ps-9 cursor-pointer", fieldErrors.origin && "border-destructive focus:ring-destructive/20")}>
+                                        <option value="" disabled>{t('common.select') || 'Select Country'}</option>
+                                        <option value="China">{t('common.countries.china')}</option>
+                                        <option value="India">{t('common.countries.india')}</option>
+                                        <option value="Germany">{t('common.countries.germany')}</option>
+                                        <option value="USA">{t('common.countries.usa')}</option>
+                                    </select>
                                     {fieldErrors.origin && <p className="text-[10px] text-destructive mt-1 font-bold uppercase">{fieldErrors.origin[0]}</p>}
                                 </div>
                             </div>
@@ -160,6 +183,51 @@ export default function NewShipmentPage() {
                                 <input type="date" value={form.pickup_date} onChange={set('pickup_date')}
                                     className={cn(fieldClass, fieldErrors.pickup_date && "border-destructive focus:ring-destructive/20")} />
                                 {fieldErrors.pickup_date && <p className="text-[10px] text-destructive mt-1 font-bold uppercase">{fieldErrors.pickup_date[0]}</p>}
+                            </div>
+
+                            {/* Storage Integration */}
+                            <div className="sm:col-span-2 pt-4 border-t border-border mt-2">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={form.needs_storage} 
+                                        onChange={(e) => setForm(p => ({ ...p, needs_storage: e.target.checked }))}
+                                        className="h-5 w-5 rounded border-border text-accent focus:ring-accent transition-all cursor-pointer"
+                                    />
+                                    <div className="flex-1">
+                                        <span className="text-sm font-bold text-foreground group-hover:text-accent transition-colors">
+                                            {t('shipments.needsStorage') || 'Require Storage at Destination?'}
+                                        </span>
+                                        <p className="text-[10px] text-muted-foreground uppercase tracking-tight">
+                                            {t('shipments.needsStorageDesc') || 'Ship Novo will automatically allocate space in your warehouse upon arrival.'}
+                                        </p>
+                                    </div>
+                                </label>
+
+                                {form.needs_storage && (
+                                    <div className="mt-4 p-4 rounded-xl bg-orange-50/50 border border-orange-100 flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-top-2">
+                                        <div className="flex-1">
+                                            <label className={labelClass}>{t('shipments.selectWarehouse') || 'Select Target Facility'}</label>
+                                            <select 
+                                                value={form.warehouse_id} 
+                                                onChange={set('warehouse_id')}
+                                                className={cn(fieldClass, fieldErrors.warehouse_id && "border-destructive")}
+                                            >
+                                                <option value="">{t('common.select') || 'Select'}</option>
+                                                {activeContracts.map((c: any) => (
+                                                    <option key={c.id} value={c.warehouse_id}>
+                                                        {c.warehouse?.name} ({c.warehouse?.location})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {activeContracts.length === 0 && (
+                                                <p className="text-[10px] text-destructive mt-1 font-bold uppercase">
+                                                    {t('shipments.noActiveWarehouse') || 'No active storage contracts found.'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div>
@@ -213,24 +281,24 @@ export default function NewShipmentPage() {
                                 {fieldErrors.volume && <p className="text-[10px] text-destructive mt-1 font-bold uppercase">{fieldErrors.volume[0]}</p>}
                             </div>
                             <div>
-                                <label className={labelClass}>{t('auth.role')}</label>
+                                <label className={labelClass}>{t('auth.role') || 'Cargo Type'}</label>
                                 <select value={form.cargo_type} onChange={set('cargo_type')}
                                     className="w-full h-10 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 transition-all">
-                                    <option value="general">General Cargo</option>
-                                    <option value="hazmat">Hazardous Materials</option>
-                                    <option value="perishable">Perishables</option>
-                                    <option value="fragile">Fragile</option>
+                                    <option value="general">{t('common.general') || 'General Cargo'}</option>
+                                    <option value="hazmat">{t('common.hazmat') || 'Hazardous Materials'}</option>
+                                    <option value="perishable">{t('common.perishable') || 'Perishables'}</option>
+                                    <option value="fragile">{t('common.fragile') || 'Fragile'}</option>
                                 </select>
                                 {fieldErrors.cargo_type && <p className="text-[10px] text-destructive mt-1 font-bold uppercase">{fieldErrors.cargo_type[0]}</p>}
                             </div>
                             <div>
-                                <label className={labelClass}>Pallet Count</label>
+                                <label className={labelClass}>{t('common.quantity') || 'Pallet Count'}</label>
                                 <input type="number" value={form.pallet_count} onChange={set('pallet_count')} placeholder="1"
                                     className={cn(fieldClass, fieldErrors.pallet_count && "border-destructive focus:ring-destructive/20")} />
                                 {fieldErrors.pallet_count && <p className="text-[10px] text-destructive mt-1 font-bold uppercase">{fieldErrors.pallet_count[0]}</p>}
                             </div>
                             <div>
-                                <label className={labelClass}>Internal Value (USD)</label>
+                                <label className={labelClass}>{t('common.value') || 'Internal Value'} (USD)</label>
                                 <input type="number" value={form.internal_value} onChange={set('internal_value')} placeholder="0.00"
                                     className={cn(fieldClass, fieldErrors.internal_value && "border-destructive focus:ring-destructive/20")} />
                                 {fieldErrors.internal_value && <p className="text-[10px] text-destructive mt-1 font-bold uppercase">{fieldErrors.internal_value[0]}</p>}
@@ -244,22 +312,22 @@ export default function NewShipmentPage() {
                         <h2 className="text-lg font-bold text-foreground">{t('shipments.getQuote')}</h2>
                         <div className="flex gap-4 mb-6">
                             <button
-                                onClick={() => setForm(p => ({ ...p, status: 'processing' }))}
+                                onClick={() => setForm(p => ({ ...p, status: 'processing', package_id: '' }))}
                                 className={cn(
                                     "flex-1 p-4 rounded-xl border-2 text-sm font-bold transition-all",
                                     form.status !== 'rfq' ? "border-accent bg-orange-50 text-accent" : "border-border bg-card text-muted-foreground"
                                 )}
                             >
-                                Multi-carrier (Instant)
+                                {t('common.directBooking') || 'Multi-carrier (Instant)'}
                             </button>
                             <button
-                                onClick={() => setForm(p => ({ ...p, status: 'rfq', customer_price: '' }))}
+                                onClick={() => setForm(p => ({ ...p, status: 'rfq', customer_price: '', package_id: '' }))}
                                 className={cn(
                                     "flex-1 p-4 rounded-xl border-2 text-sm font-bold transition-all",
                                     form.status === 'rfq' ? "border-accent bg-orange-50 text-accent" : "border-border bg-card text-muted-foreground"
                                 )}
                             >
-                                Request for Quotation (RFQ)
+                                {t('common.rfqMode') || 'Request for Quotation (RFQ)'}
                             </button>
                         </div>
 
@@ -268,53 +336,54 @@ export default function NewShipmentPage() {
                                 <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto">
                                     <Package className="h-6 w-6 text-orange-600" />
                                 </div>
-                                <h3 className="text-sm font-bold text-foreground">RFQ Mode Active</h3>
+                                <h3 className="text-sm font-bold text-foreground">{t('common.rfqActive') || 'RFQ Mode Active'}</h3>
                                 <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                                    Your shipment details will be sent to verified partners.
-                                    You&apos;ll receive customized quotes to compare and select.
+                                    {t('common.rfqDescription') || "Your shipment details will be sent to verified partners. You'll receive customized quotes to compare and select."}
                                 </p>
                             </div>
                         ) : (
-                            quotes.length > 0 ? (
+                            matchedPackages.length > 0 ? (
                                 <div className="grid gap-4">
-                                    {quotes.map((q: SimulatedQuote) => (
-                                        <div key={q.id}
-                                            onClick={() => setForm(p => ({ ...p, customer_price: String(q.price ?? q.amount), service_type: q.service_type ?? 'standard' }))}
+                                    <p className="text-xs text-muted-foreground italic mb-2">{t('common.availablePackages') || 'Available global shipping packages for your route:'}</p>
+                                    {matchedPackages.map((pkg: any) => {
+                                        const parsedWeight = parseFloat(form.total_weight) || 0;
+                                        const isOutOfRange = (pkg.min_weight && parsedWeight < pkg.min_weight) || (pkg.max_weight && parsedWeight > pkg.max_weight);
+                                        
+                                        return (
+                                        <div key={pkg.id}
+                                            onClick={() => !isOutOfRange && setForm(p => ({ ...p, customer_price: String(pkg.price), package_id: String(pkg.id) }))}
                                             className={cn(
-                                                "flex items-center justify-between p-5 rounded-xl border-2 cursor-pointer transition-all",
-                                                Number(form.customer_price) === (q.price ?? q.amount) ? "border-accent bg-orange-50" : "border-border bg-card hover:border-muted-foreground/30"
+                                                "flex flex-col p-5 rounded-xl border-2 transition-all",
+                                                !isOutOfRange ? "cursor-pointer" : "opacity-60 cursor-not-allowed",
+                                                form.package_id === String(pkg.id) ? "border-accent bg-orange-50" : "border-border bg-card hover:border-muted-foreground/30"
                                             )}>
-                                            <div>
-                                                <p className="text-sm font-bold text-foreground capitalize">{q.service_type} Service</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">ETA: {q.eta_days ?? 14} business days</p>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm font-bold text-foreground capitalize">{pkg.name}</p>
+                                                    <p className="text-xs text-muted-foreground mt-0.5">{pkg.origin} {t('common.to') || 'to'} {pkg.destination}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xl font-black text-foreground">${parseFloat(pkg.price).toLocaleString()}</p>
+                                                    <p className="text-xs font-bold text-accent">{t('common.fixedRate') || 'Fixed Rate'}</p>
+                                                </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-xl font-black text-foreground">${(q.price ?? q.amount)?.toLocaleString()}</p>
-                                                <p className="text-xs text-muted-foreground">USD</p>
-                                            </div>
+                                            {isOutOfRange && (
+                                                <p className="text-xs text-destructive font-bold mt-2">
+                                                    {t('common.outOfBounds') || `Weight out of bounds (${pkg.min_weight}kg to ${pkg.max_weight}kg required)`}
+                                                </p>
+                                            )}
                                         </div>
-                                    ))}
+                                    )})}
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <p className="text-xs text-muted-foreground italic">No quotes fetched — enter a custom price:</p>
-                                    {[
-                                        { label: 'Standard (14 days)', price: '1,200', type: 'standard' },
-                                        { label: 'Express (7 days)', price: '2,400', type: 'express' },
-                                        { label: 'Economy (21 days)', price: '850', type: 'economy' },
-                                    ].map(q => (
-                                        <div key={q.type}
-                                            onClick={() => setForm(p => ({ ...p, customer_price: q.price.replace(',', ''), service_type: q.type }))}
-                                            className={cn(
-                                                "flex items-center justify-between p-5 rounded-xl border-2 cursor-pointer transition-all",
-                                                form.service_type === q.type ? "border-accent bg-orange-50" : "border-border bg-card hover:border-muted-foreground/30"
-                                            )}>
-                                            <div>
-                                                <p className="text-sm font-bold text-foreground">{q.label}</p>
-                                            </div>
-                                            <p className="text-xl font-black text-foreground">${q.price}</p>
-                                        </div>
-                                    ))}
+                                    <div className="p-8 rounded-xl border border-dashed border-border bg-muted/20 text-center space-y-3">
+                                        <h3 className="text-sm font-bold text-foreground">{t('common.noPackagesFound') || 'No matching pricing packages found for this route.'}</h3>
+                                        <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                                            {t('common.tryRfq') || 'Please try RFQ mode to request customized shipping quotes from our partners instead.'}
+                                        </p>
+                                        <Button variant="outline" onClick={() => setForm(p => ({ ...p, status: 'rfq', customer_price: '', package_id: '' }))}>{t('common.switchToRfq') || 'Switch to RFQ'}</Button>
+                                    </div>
                                 </div>
                             )
                         )}

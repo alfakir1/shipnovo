@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Warehouse extends Model
 {
     protected $fillable = ['partner_id', 'name', 'location', 'total_capacity', 'available_capacity', 'status'];
+    protected $appends = ['used_capacity'];
+
+    public function getUsedCapacityAttribute()
+    {
+        return $this->total_capacity - $this->available_capacity;
+    }
+
 
     public function partner()
     {
