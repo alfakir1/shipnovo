@@ -11,4 +11,3 @@ frontend/node_modules
 backend/vendor
 Dockerfile
 .dockerignore
-docker/
