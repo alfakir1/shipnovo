@@ -15,12 +15,19 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort(),
-        // Sanctum::currentRequestHost(),
-    ))),
+    'stateful' => array_filter(array_merge(
+        explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+            '%s%s',
+            'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
+            Sanctum::currentApplicationUrlWithPort()
+        ))),
+        [
+            isset($_SERVER['HTTP_ORIGIN']) ? parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST) : '',
+            isset($_SERVER['HTTP_ORIGIN']) && parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_PORT) ? parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST).':'.parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_PORT) : '',
+            isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '',
+            isset($_SERVER['HTTP_HOST']) ? explode(':', $_SERVER['HTTP_HOST'])[0] : ''
+        ]
+    )),
 
     /*
     |--------------------------------------------------------------------------
