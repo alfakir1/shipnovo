@@ -63,6 +63,7 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log \
     && mkdir -p /run/php \
     && sed -i 's|listen = /run/php/php8.2-fpm.sock|listen = 127.0.0.1:9000|' /etc/php/8.2/fpm/pool.d/www.conf \
+    && echo "clear_env = no" >> /etc/php/8.2/fpm/pool.d/www.conf \
     && rm -f /etc/nginx/sites-available/default \
     && rm -f /etc/nginx/sites-enabled/default
 
@@ -77,4 +78,4 @@ RUN chown -R www-data:www-data /app/backend/storage /app/backend/bootstrap/cache
 EXPOSE 10000
 
 # Run migrations and start Supervisor
-CMD ["sh", "-c", "php /app/backend/artisan config:clear && php /app/backend/artisan migrate:fresh --force --seed && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+CMD ["sh", "-c", "php /app/backend/artisan config:cache && php /app/backend/artisan migrate:fresh --force --seed && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
