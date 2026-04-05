@@ -97,8 +97,16 @@ export default function SignupPage() {
                 </div>
 
                 {/* Footer credit */}
-                <div className="relative z-10 text-xs" style={{ color: 'var(--navy-300)' }}>
-                    © 2025 ShipNovo · Built for Orchestration
+                <div className="relative z-10 flex flex-col gap-2">
+                    <div className="text-xs font-bold" style={{ color: 'var(--navy-300)' }}>
+                        © 2026 ShipNovo · Built for Orchestration
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 text-white">
+                        <div className="h-px w-4 bg-white/20" />
+                        <a href="https://github.com/alfakir1" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-400 transition-colors">
+                            {locale === 'ar' ? 'تصميم وتطوير المهندس علي الفقير' : 'Designed by ENG Ali Alfakir'}
+                        </a>
+                    </div>
                 </div>
             </div>
 

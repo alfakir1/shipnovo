@@ -683,5 +683,6 @@ export const ar = {
         footerRights: "© 2026 شيب نوفو. جميع الحقوق محفوظة.",
         footerPrivacy: "الخصوصية",
         footerTerms: "الشروط",
+        footerDesigner: "تصميم وتطوير المهندس علي الفقير",
     }
 };

@@ -128,6 +128,14 @@ const SidebarContent = ({ user, t, pathname, filteredNavItems, getFinalHref, log
                 {t('common.logout')}
             </button>
         </div>
+
+        {/* Designer Credit */}
+        <div className="px-5 py-4 border-t border-sidebar-border/50 text-center">
+            <a href="https://github.com/alfakir1" target="_blank" rel="noopener noreferrer" 
+               className="text-[10px] font-black uppercase tracking-[0.2em] text-sidebar-muted/40 hover:text-sidebar-accent transition-colors">
+                {t('landing.footerDesigner')}
+            </a>
+        </div>
     </div>
 );
 

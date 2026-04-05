@@ -136,8 +136,16 @@ export default function PublicTrackingPage() {
                 </div>
             </main>
 
-            <footer className="mt-20 text-center text-xs text-muted-foreground">
-                <p>© 2025 ShipNovo · Logistics Orchestration Platform</p>
+            <footer className="mt-24 pb-12 text-center flex flex-col items-center gap-4">
+                <p className="text-xs text-muted-foreground font-medium opacity-60">© 2026 ShipNovo · Logistics Orchestration Platform</p>
+                <div className="flex items-center gap-3">
+                    <div className="h-px w-8 bg-border" />
+                    <a href="https://github.com/alfakir1" target="_blank" rel="noopener noreferrer" 
+                       className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 hover:text-brand-orange-500 transition-all hover:scale-105 active:scale-95">
+                        Designed by ENG Ali Alfakir
+                    </a>
+                    <div className="h-px w-8 bg-border" />
+                </div>
             </footer>
         </div>
     );

@@ -16,6 +16,11 @@ import {
   Wallet,
   Shield,
   Package,
+  Github,
+  Facebook,
+  Instagram,
+  Linkedin,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -327,17 +332,56 @@ export default function Home() {
       </section>
 
       {/* ────────── FOOTER ────────── */}
-      <footer className="py-12 bg-muted/30 border-t border-border/40">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-3">
-            <div className="bg-card rounded-xl p-2.5 shadow-sm border border-border group hover:shadow-md transition-all">
-              <Image src="/brand/logo.png" alt="ShipNovo" width={120} height={35} className="h-7 w-auto object-contain" />
+      <footer className="py-10 bg-muted/30 border-t border-border/40">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-10 pb-10 border-b border-border/40">
+            {/* Side 1: Brand Info */}
+            <div className="flex flex-col items-center md:items-start gap-4">
+              <div className="bg-card rounded-xl p-2.5 shadow-sm border border-border group hover:shadow-md transition-all">
+                <Image src="/brand/logo.png" alt="ShipNovo" width={140} height={40} className="h-8 w-auto object-contain" />
+              </div>
+              <p className="text-sm text-muted-foreground font-medium max-w-xs text-center md:text-left rtl:md:text-right">
+                {t('landing.footerTagline')}
+              </p>
+            </div>
+            
+            {/* Side 2: Quick Links & Badge */}
+            <div className="flex flex-col items-center gap-4">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{t('common.documents')}</h4>
+              <div className="flex items-center gap-8">
+                <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-bold">{t('landing.footerPrivacy')}</Link>
+                <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-bold">{t('landing.footerTerms')}</Link>
+              </div>
+              <div className="flex items-center gap-2 mt-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground/50">
+                <div className="h-1 w-1 rounded-full bg-brand-orange-500 animate-pulse" />
+                4PL Certified Global Network
+              </div>
+            </div>
+
+            {/* Side 3: Designer & Socials */}
+            <div className="flex flex-col items-center md:items-end gap-5 pt-6 md:pt-10">
+              <div className="text-xs font-black uppercase tracking-widest text-foreground transition-all hover:text-brand-orange-600">
+                {t('landing.footerDesigner')}
+              </div>
+              <div className="flex items-center gap-3">
+                {[
+                  { icon: Github, url: "https://github.com/alfakir1", color: "hover:text-black hover:border-black/20" },
+                  { icon: MessageCircle, url: "https://wa.me/967777073977", color: "hover:text-[#25D366] hover:border-[#25D366]/20" },
+                  { icon: Linkedin, url: "https://www.linkedin.com/in/ali-alfakir-37a91a3a1?utm_source=share_via&utm_content=profile&utm_medium=member_android", color: "hover:text-[#0077B5] hover:border-[#0077B5]/20" },
+                  { icon: Facebook, url: "https://www.facebook.com/share/1GWcs4EKaz/", color: "hover:text-[#1877F2] hover:border-[#1877F2]/20" },
+                  { icon: Instagram, url: "https://www.instagram.com/7s.i4?igsh=MXFjMGk5N2Nmd2Y1NQ==", color: "hover:text-[#E4405F] hover:border-[#E4405F]/20" },
+                ].map((social, i) => (
+                  <a key={i} href={social.url} target="_blank" rel="noopener noreferrer" 
+                    className={cn("h-9 w-9 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground transition-all hover:scale-110 hover:-translate-y-1 shadow-sm", social.color)}>
+                    <social.icon className="h-4.5 w-4.5" />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="text-muted-foreground text-sm font-medium">{t('landing.footerRights')}</div>
-          <div className="flex items-center gap-8">
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-bold">{t('landing.footerPrivacy')}</Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-bold">{t('landing.footerTerms')}</Link>
+          
+          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium text-muted-foreground">
+            <div>{t('landing.footerRights')}</div>
           </div>
         </div>
       </footer>

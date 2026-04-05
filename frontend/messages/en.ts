@@ -683,5 +683,6 @@ export const en = {
         footerRights: "© 2026 ShipNovo. All rights reserved.",
         footerPrivacy: "Privacy",
         footerTerms: "Terms",
+        footerDesigner: "Designed by ENG Ali Alfakir",
     }
 };

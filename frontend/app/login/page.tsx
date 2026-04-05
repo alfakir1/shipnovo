@@ -82,8 +82,16 @@ export default function LoginPage() {
                 </div>
 
                 {/* Footer credit */}
-                <div className="relative z-10 text-xs" style={{ color: 'var(--brand-navy-300)' }}>
-                    © 2025 ShipNovo 4PL Platform. Global SaaS Quality.
+                <div className="relative z-10 flex flex-col gap-2">
+                    <div className="text-xs font-bold" style={{ color: 'var(--brand-navy-300)' }}>
+                        © 2026 ShipNovo 4PL Platform. Global SaaS Quality.
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60" style={{ color: 'var(--brand-navy-100)' }}>
+                        <div className="h-px w-4 bg-current opacity-30" />
+                        <a href="https://github.com/alfakir1" target="_blank" rel="noopener noreferrer" className="hover:text-brand-orange-400 transition-colors">
+                            {locale === 'ar' ? 'تصميم وتطوير المهندس علي الفقير' : 'Designed by ENG Ali Alfakir'}
+                        </a>
+                    </div>
                 </div>
             </div>
 
