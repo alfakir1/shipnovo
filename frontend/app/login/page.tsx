@@ -32,17 +32,7 @@ export default function LoginPage() {
         }
     };
 
-    const quickLogin = (role: string) => {
-        const creds: Record<string, { email: string; pw: string }> = {
-            customer: { email: 'customer@shipnovo.com', pw: 'password' },
-            ops: { email: 'ops@shipnovo.com', pw: 'password' },
-            partner: { email: 'partner@shipnovo.com', pw: 'password' },
-        };
-        if (creds[role]) {
-            setEmail(creds[role].email);
-            setPassword(creds[role].pw);
-        }
-    };
+
 
     return (
         <div className="min-h-screen flex font-sans" style={{ direction: isRtl ? 'rtl' : 'ltr', fontFamily: isRtl ? "'Noto Kufi Arabic', sans-serif" : "inherit" }}>
@@ -192,20 +182,7 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {/* Quick access */}
-                    <div className="mt-10 pt-8 border-t border-border">
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">
-                            {t('auth.quickAccess')}
-                        </p>
-                        <div className="grid grid-cols-3 gap-3">
-                            {['customer', 'ops', 'partner'].map(role => (
-                                <button key={role} onClick={() => quickLogin(role)}
-                                    className="h-10 rounded-xl text-xs font-bold capitalize border border-border bg-card hover:border-brand-navy-300 hover:bg-muted transition-all text-foreground shadow-sm">
-                                    {t(`common.roles.${role}`)}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+
 
                     <p className="text-center text-sm text-muted-foreground mt-8">
                         {t('auth.newToShipNovo')}{' '}
