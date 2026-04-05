@@ -77,4 +77,4 @@ RUN chown -R www-data:www-data /app/backend/storage /app/backend/bootstrap/cache
 EXPOSE 10000
 
 # Run migrations and start Supervisor
-CMD ["sh", "-c", "php /app/backend/artisan config:clear && php /app/backend/artisan migrate --force && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+CMD ["sh", "-c", "php /app/backend/artisan config:clear && php /app/backend/artisan migrate:fresh --force --seed && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
