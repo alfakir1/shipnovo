@@ -21,6 +21,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/config', [SystemController::class, 'config']);
 Route::get('/public/track/{token}', [PublicController::class, 'track']);
+Route::get('/setup-db', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true, '--seed' => true]);
+    return response()->json(['message' => 'Database migrated and seeded successfully on Render!']);
+});
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
